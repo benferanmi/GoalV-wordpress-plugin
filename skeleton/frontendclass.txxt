@@ -1,0 +1,170 @@
+<?php
+/**
+ * Frontend Display Handler - Function Signatures Only
+ */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+class GoalV_Frontend
+{
+    public function __construct()
+    {
+        // Constructor implementation
+    }
+
+    /**
+     * Check if shortcode is being used and enqueue assets
+     */
+    public function check_shortcode_usage()
+    {
+        // Function implementation
+    }
+
+    /**
+     * Force enqueue assets when shortcode is detected - UPDATED for separated JS
+     */
+    public function force_enqueue_assets()
+    {
+        // Function implementation
+    }
+
+    /**
+     * Enhanced matches shortcode - UPDATE EXISTING METHOD
+     */
+    public function matches_shortcode($atts)
+    {
+        // Function implementation
+    }
+
+    /**
+     * Get matches by manual week selection (shortcode override)
+     */
+    private function get_matches_by_manual_weeks($weeks, $limit)
+    {
+        // Function implementation
+    }
+
+    /**
+     * Get matches for homepage display based on admin settings
+     */
+    private function get_current_week_matches($limit)
+    {
+        // Function implementation
+    }
+
+    /**
+     * Get matches for a specific week
+     */
+    private function get_matches_by_week($week_num, $limit = -1)
+    {
+        // Function implementation
+    }
+
+    /**
+     * Get fallback matches when selected weeks are empty
+     */
+    private function get_fallback_matches($limit)
+    {
+        // Function implementation
+    }
+
+    public function handle_load_more_matches()
+    {
+        // Function implementation
+    }
+
+    /**
+     * Get paginated matches
+     */
+    private function get_paginated_matches($page = 1, $per_page = 10)
+    {
+        // Function implementation
+    }
+
+    /**
+     * Render single match row for AJAX loading
+     */
+    private function render_single_match_row($match)
+    {
+        // Function implementation
+    }
+
+    /**
+     * Get vote percentages for a match
+     */
+    private function get_vote_percentages($match_id, $vote_location)
+    {
+        // Function implementation
+    }
+
+    /**
+     * Load template file
+     */
+    private function load_template($template_name, $args = array())
+    {
+        // Function implementation
+    }
+
+    private function load_template_cached($template_name, $args = array())
+    {
+        // Function implementation
+    }
+
+    /**
+     * Get team logo with fallback
+     */
+    public function get_team_logo($logo_url, $team_name = '')
+    {
+        // Function implementation
+    }
+
+    /**
+     * Format match date for display
+     */
+    public function format_match_date($date_string)
+    {
+        // Function implementation
+    }
+
+    /**
+     * Get match status display text
+     */
+    public function get_status_display($status, $home_score = 0, $away_score = 0)
+    {
+        // Function implementation
+    }
+
+    /**
+     * Check if user can vote on this location
+     */
+    public function can_vote_on_location($vote_location)
+    {
+        // Function implementation
+    }
+
+    /**
+     * Get single match data for detail page
+     */
+    public function get_single_match_data($match_id)
+    {
+        // Function implementation
+    }
+
+    /**
+     * Add browser ID script to footer - ENHANCED
+     */
+    public function add_browser_id_script()
+    {
+        // Function implementation
+    }
+
+    /**
+     * Debug function to check if voting works
+     */
+    public function debug_voting_setup()
+    {
+        // Function implementation
+    }
+}

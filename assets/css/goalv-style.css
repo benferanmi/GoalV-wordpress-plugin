@@ -1,0 +1,1756 @@
+/**
+ * GoalV Football Predictions Styles
+ */
+
+/* === GENERAL STYLES === */
+.goalv-matches-container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 20px 0;
+}
+
+.goalv-error, .goalv-no-matches {
+    text-align: center;
+    padding: 40px 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    color: #6c757d;
+}
+
+.goalv-no-matches-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.goalv-no-matches h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.goalv-no-matches p {
+    margin: 0;
+    opacity: 0.8;
+}
+
+/* === CARD TEMPLATE STYLES === */
+.goalv-card-template .goalv-match-card {
+    background: #fff;
+    border: 1px solid #e1e5e9;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.goalv-card-template .goalv-match-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+
+.goalv-card-header {
+    background: #319008;
+    color: white;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.goalv-competition-badge {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.goalv-match-date {
+    font-size: 13px;
+    opacity: 0.9;
+}
+
+.goalv-teams-section {
+    display: flex;
+    align-items: center;
+    padding: 24px 20px;
+    gap: 20px;
+}
+
+.goalv-team {
+    flex: 1;
+    text-align: center;
+}
+.goalv-team-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.goalv-team-logo img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    border-radius: 8px;
+    background: #f8f9fa;
+    padding: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.goalv-team-name {
+    margin-top: 12px;
+    font-weight: 600;
+    color: #333;
+    font-size: 16px;
+}
+
+.goalv-match-center {
+    flex: 0 0 auto;
+    text-align: center;
+    min-width: 80px;
+}
+
+.goalv-vs-text {
+    font-size: 18px;
+    font-weight: bold;
+    color: #666;
+    margin-top: 8px;
+}
+
+.goalv-voting-section {
+    border-top: 1px solid #e1e5e9;
+    padding: 20px;
+    background: #f8f9fa;
+}
+
+.goalv-voting-buttons {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.goalv-vote-btn {
+    flex: 1;
+    background: #fff;
+    color: black;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.goalv-vote-btn:hover {
+    border-color: #319008;
+    background: #f0f4ff;
+    transform: translateY(-1px);
+}
+
+.goalv-vote-btn.selected {
+    background: #319008;
+    border-color: #319008;
+    color: white;
+}
+
+.goalv-option-text {
+    font-weight: 600;
+    color: black;
+}
+
+.goalv-percentage {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+.goalv-vote-btn.selected .goalv-percentage {
+    opacity: 1;
+}
+
+.goalv-card-footer {
+    padding: 16px 20px;
+    border-top: 1px solid #e1e5e9;
+    background: #fff;
+}
+
+.goalv-details-link {
+    color: #319008;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    transition: color 0.3s ease;
+}
+
+.goalv-details-link:hover {
+    color: #319002;
+}
+
+/* === GRID TEMPLATE STYLES === */
+.goalv-grid-template .goalv-matches-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+.goalv-match-grid-item {
+    background: #fff;
+    border: 1px solid #e1e5e9;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.goalv-match-grid-item:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+
+.goalv-grid-competition {
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.goalv-teams-row {
+    display: flex;
+    align-items: center;
+    padding: 20px 16px;
+    gap: 12px;
+}
+
+.goalv-team-compact {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.goalv-team-logo-small {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    border-radius: 4px;
+    background: #f8f9fa;
+    padding: 4px;
+}
+
+.goalv-team-name-short {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.goalv-match-vs {
+    flex: 0 0 auto;
+    text-align: center;
+    min-width: 40px;
+}
+
+.goalv-vs-compact, .goalv-score-compact {
+    font-size: 14px;
+    font-weight: bold;
+    color: #666;
+}
+
+.goalv-grid-match-info {
+    padding: 0 16px 16px 16px;
+    text-align: center;
+    border-bottom: 1px solid #e1e5e9;
+}
+
+.goalv-grid-status {
+    margin-bottom: 4px;
+}
+
+.goalv-grid-date {
+    font-size: 12px;
+    color: #666;
+}
+
+.goalv-grid-voting {
+    padding: 16px;
+    background: #f8f9fa;
+}
+
+.goalv-grid-vote-btn {
+    width: 100%;
+    background: #fff;
+    color: black;
+    border: 1px solid #e1e5e9;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+}
+
+.goalv-grid-vote-btn:last-of-type {
+    margin-bottom: 12px;
+}
+
+.goalv-grid-vote-btn:hover {
+    border-color: #319008;
+    background: #f0f4ff;
+}
+
+.goalv-grid-vote-btn.selected {
+    background: #319008;
+    border-color: #319008;
+    color: white;
+}
+
+.goalv-grid-option-text {
+    font-weight: 500;
+}
+
+.goalv-grid-percentage {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.goalv-grid-footer {
+    padding: 12px 16px;
+    text-align: center;
+    background: #fff;
+}
+
+.goalv-grid-details-link {
+    color: #319008;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    display: inline-block;
+    transition: color 0.3s ease;
+}
+
+.goalv-grid-details-link:hover {
+    color: #319002;
+}
+
+/* === SINGLE MATCH PAGE STYLES === */
+.goalv-single-match-container {
+    max-width: 70%;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.goalv-single-match-wrapper {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.goalv-match-header {
+    background: linear-gradient(135deg, #319008 0%, #287321 100%);
+    color: white;
+    padding: 30px;
+}
+
+.goalv-competition {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.goalv-competition-name {
+    font-size: 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.9;
+}
+
+.goalv-teams-display {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+}
+
+.goalv-teams-display .goalv-team {
+    flex: 1;
+    text-align: center;
+}
+
+.goalv-teams-display .goalv-team-logo img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 12px;
+    backdrop-filter: blur(10px);
+}
+
+.goalv-teams-display .goalv-team-name {
+    margin-top: 16px;
+    font-size: 20px;
+    color:white;
+    font-weight: 700;
+}
+
+.goalv-match-info {
+    flex: 0 0 auto;
+    text-align: center;
+    min-width: 120px;
+}
+
+.goalv-match-score .goalv-score {
+    font-size: 36px;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.goalv-match-score .goalv-vs {
+    font-size: 24px;
+    font-weight: bold;
+    opacity: 0.8;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.goalv-match-status, .goalv-match-date {
+    font-size: 14px;
+    opacity: 0.9;
+    margin-bottom: 4px;
+}
+
+.goalv-voting-section {
+    padding: 30px;
+}
+
+.goalv-voting-section h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+    font-size: 24px;
+}
+
+.goalv-login-notice {
+    text-align: center;
+    padding: 30px;
+    background: #f0f4ff;
+    border-radius: 12px;
+    border: 2px dashed #319008;
+}
+
+.goalv-login-button {
+    display: inline-block;
+    background: #319008;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    margin-top: 16px;
+    transition: all 0.3s ease;
+}
+
+.goalv-login-button:hover {
+    background: #319002;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.goalv-detailed-voting {
+    max-width:100%;
+    margin: 0 auto;
+}
+
+.goalv-voting-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+}
+
+.goalv-vote-option {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.goalv-detailed-voting .goalv-vote-btn {
+    width: 100%;
+    background: #fff;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+}
+
+.goalv-detailed-voting .goalv-vote-btn:hover {
+    border-color: #319008;
+    background: #f0f4ff;
+    transform: translateY(-1px);
+}
+
+.goalv-detailed-voting .goalv-vote-btn.selected {
+    background: #319008;
+    border-color: #319008;
+    color: white;
+}
+
+.goalv-vote-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.goalv-percentage {
+    font-weight: bold;
+    font-size: 16px;
+    color: black;
+}
+
+.goalv-votes-count {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.goalv-detailed-voting .goalv-vote-btn.selected .goalv-votes-count {
+    opacity: 0.9;
+}
+
+.goalv-results-summary {
+    margin-top: 40px;
+    padding: 30px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border-top: 4px solid #319008;
+}
+
+.goalv-results-summary h3 {
+    text-align: center;
+    margin-bottom: 24px;
+    color: #333;
+}
+
+.goalv-results-grid {
+    display: grid;
+    gap: 12px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.goalv-result-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+}
+
+.goalv-result-text {
+    flex: 1;
+    font-size: 14px;
+    color: #333;
+}
+
+.goalv-result-bar {
+    flex: 0 0 100px;
+    height: 8px;
+    background: #e1e5e9;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.goalv-result-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #319008, #2c7e42);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.goalv-result-stats {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 4px;
+    font-size: 12px;
+    color: #666;
+}
+
+.goalv-result-percentage {
+    font-weight: bold;
+}
+
+.goalv-total-votes {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+    color: #666;
+    font-weight: 500;
+}
+
+.goalv-navigation {
+    padding: 20px 30px;
+    text-align: center;
+    border-top: 1px solid #e1e5e9;
+}
+
+.goalv-back-button {
+    color: #319008;
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.3s ease;
+}
+
+.goalv-back-button:hover {
+    color: #319002;
+}
+
+/* === STATUS INDICATORS === */
+.goalv-status-live {
+    background: #e53e3e;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    animation: pulse 2s infinite;
+}
+
+.goalv-status-finished {
+    background: #38a169;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.goalv-status-scheduled {
+    background: #319008;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* === FINAL RESULTS === */
+.goalv-final-results {
+    padding: 16px;
+    background: #f8f9fa;
+    border-top: 1px solid #e1e5e9;
+}
+
+.goalv-final-results h4 {
+    margin-bottom: 12px;
+    color: #333;
+    font-size: 16px;
+    text-align: center;
+}
+
+.goalv-results-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.goalv-final-results .goalv-result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #e1e5e9;
+}
+
+.goalv-result-text {
+    font-size: 13px;
+    color: #333;
+}
+
+.goalv-result-percentage {
+    font-weight: bold;
+    color: #319008;
+    font-size: 13px;
+}
+
+/* === GRID SPECIFIC STYLES === */
+.goalv-grid-final-results {
+    padding: 12px 16px;
+    background: #f8f9fa;
+}
+
+.goalv-grid-result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid #e1e5e9;
+    font-size: 12px;
+}
+
+.goalv-grid-result-item:last-child {
+    border-bottom: none;
+}
+
+.goalv-grid-result-text {
+    color: #333;
+}
+
+.goalv-grid-result-percentage {
+    font-weight: bold;
+    color: #319008;
+}
+
+/* === VOTING STATES === */
+.goalv-voting-closed {
+    text-align: center;
+    padding: 30px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    color: #666;
+}
+
+.goalv-vote-status, .goalv-grid-vote-status {
+    margin-top: 12px;
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    text-align: center;
+    min-height: 20px;
+}
+
+.goalv-vote-status.success, .goalv-grid-vote-status.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.goalv-vote-status.error, .goalv-grid-vote-status.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* === LOADING STATES === */
+.goalv-vote-btn.loading {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.goalv-vote-btn.loading::after {
+    content: '';
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-left: 8px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* === RESPONSIVE DESIGN === */
+@media (max-width: 768px) {
+    .goalv-matches-container {
+        padding: 16px;
+    }
+    
+    .goalv-teams-section {
+        flex-direction: column;
+        gap: 16px;
+        padding: 20px 16px;
+    }
+    
+    .goalv-teams-display {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .goalv-teams-display .goalv-team-name {
+        font-size: 18px;
+    }
+    
+    .goalv-voting-buttons {
+        flex-direction: column;
+    }
+    
+    .goalv-grid-template .goalv-matches-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .goalv-teams-row {
+        padding: 16px 12px;
+    }
+    
+    .goalv-team-name-short {
+        font-size: 12px;
+    }
+    
+    .goalv-voting-options {
+        grid-template-columns: 1fr;
+    }
+    
+    .goalv-single-match-container {
+        padding: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .goalv-card-header {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+    }
+    
+    .goalv-teams-display .goalv-team-logo img {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .goalv-teams-display .goalv-team-name {
+        font-size: 16px;
+    }
+    
+    .goalv-match-score .goalv-score {
+        font-size: 28px;
+    }
+    
+    .goalv-teams-row {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .goalv-team-compact {
+        justify-content: center;
+    }
+}
+
+
+
+.goalv-vote-btn.loading {
+    position: relative;
+    color: transparent;
+}
+
+.goalv-vote-btn.loading:after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    border-top-color: #107025;
+    animation: goalv-spin 1s ease-in-out infinite;
+}
+
+@keyframes goalv-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Better hover effects */
+.goalv-vote-btn:not(.loading):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.goalv-vote-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.goalv-vote-count {
+    font-size: 11px;
+    color: #666;
+    font-weight: normal;
+}
+
+.goalv-vote-btn.selected .goalv-vote-count {
+    color: #fff;
+}
+
+.goalv-grid-vote-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    margin-top: 2px;
+}
+
+.goalv-grid-vote-count {
+    font-size: 10px;
+    color: #666;
+    font-weight: normal;
+}
+
+.goalv-grid-vote-btn.selected .goalv-grid-vote-count {
+    color: #fff;
+}
+
+/* Results display */
+.goalv-result-stats-inline {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+}
+
+.goalv-result-count-inline {
+    font-size: 10px;
+    color: #666;
+}
+
+/* ========================================
+   RESPONSIVE ADJUSTMENTS
+======================================== */
+@media (max-width: 768px) {
+    .goalv-vote-stats,
+    .goalv-grid-vote-stats,
+    .goalv-inline-vote-stats {
+        flex-direction: row;
+        gap: 4px;
+    }
+    
+    .goalv-vote-count,
+    .goalv-grid-vote-count,
+    .goalv-inline-vote-count {
+        font-size: 10px;
+    }
+}
+
+/* For very small buttons in table view */
+@media (max-width: 480px) {
+    .goalv-inline-vote-stats {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .goalv-inline-vote-count {
+        font-size: 9px;
+    }
+}
+
+.goalv-loading-container {
+    text-align: center;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.goalv-loading-spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #107025;
+    border-radius: 50%;
+    animation: goalv-spin 1s linear infinite;
+}
+
+@keyframes goalv-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.goalv-load-more-btn {
+    background: #107025;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin: 20px auto;
+    display: block;
+    transition: background-color 0.3s ease;
+}
+
+.goalv-load-more-btn:hover {
+    background: #005a87;
+}
+
+.goalv-load-more-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.goalv-end-message {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+    font-style: italic;
+    border-top: 1px solid #e9ecef;
+    margin-top: 20px;
+}
+
+/* Smooth fade-in for new matches */
+.goalv-match-row.goalv-new-loaded {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: goalv-fade-in 0.5s ease forwards;
+}
+
+@keyframes goalv-fade-in {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+.goalv-week-header {
+    background: #f8f9fa;
+    border-left: 4px solid #189411;
+    padding: 10px 15px;
+    margin: 20px 0 15px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    border-radius: 0 4px 4px 0;
+}
+
+.goalv-week-section {
+    margin-bottom: 30px;
+}
+
+.goalv-week-section:last-child {
+    margin-bottom: 0;
+}
+
+.goalv-week-matches {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Multiple votes indicators */
+.goalv-multiple-votes-indicator {
+    background: #e7f3ff;
+    border: 1px solid #2196f3;
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.goalv-votes-badge {
+    color: #1976d2;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+/* Multiple votes active state */
+.goalv-multiple-votes-active .goalv-vote-btn.selected {
+    background: linear-gradient(135deg, #4caf50, #45a049);
+    border-color: #4caf50;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.goalv-multiple-votes-active .goalv-vote-btn.selected::after {
+    content: "✓";
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* For grid template */
+.goalv-multiple-votes-active .goalv-grid-vote-btn.selected {
+    background: #4caf50;
+    border-color: #4caf50;
+    color: white;
+    position: relative;
+}
+
+.goalv-multiple-votes-active .goalv-grid-vote-btn.selected::after {
+    content: "✓";
+    position: absolute;
+    top: 2px;
+    right: 4px;
+    color: white;
+    font-size: 10px;
+}
+
+/* Animation for vote toggles */
+.goalv-vote-btn, .goalv-grid-vote-btn {
+    transition: all 0.3s ease;
+}
+
+.goalv-vote-btn.selected, .goalv-grid-vote-btn.selected {
+    transform: scale(1.02);
+}
+
+/* Multiple votes counter */
+.goalv-multiple-votes-counter {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #ff4444;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+/* Voting section when multiple votes are active */
+.goalv-multiple-votes-active {
+    border: 2px solid #e3f2fd;
+    border-radius: 8px;
+    position: relative;
+}
+
+.goalv-multiple-votes-active::before {
+    content: "Multiple Votes Mode";
+    position: absolute;
+    top: -12px;
+    left: 10px;
+    background: #19a24e;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+/* Selected Vote Button Styles - Add to your goalv-style.css */
+
+/* Basic vote buttons - Card and Grid templates */
+.goalv-vote-btn.selected,
+.goalv-grid-vote-btn.selected {
+    background: #107025 !important;
+    color: white !important;
+    border-color: #107025 !important;
+    box-shadow: 0 2px 4px rgba(0, 124, 186, 0.3);
+}
+
+/* Inline vote buttons - Table template */
+.goalv-vote-btn-inline.selected {
+    background: #107025 !important;
+    color: white !important;
+    border-color: #107025 !important;
+}
+
+/* Detailed voting buttons - Single match page */
+.goalv-detailed-voting .goalv-vote-btn.selected {
+    background: #107025 !important;
+    color: white !important;
+    border-color: #107025 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 124, 186, 0.2);
+}
+
+/* Vote option container when selected */
+.goalv-vote-option.selected {
+    background: rgba(0, 124, 186, 0.1);
+    border-left: 4px solid #107025;
+    padding-left: 16px;
+}
+
+/* Multiple votes active styling */
+.goalv-multiple-votes-active .goalv-vote-btn.selected {
+    background: #28a745 !important;
+    border-color: #28a745 !important;
+}
+
+.goalv-multiple-votes-active .goalv-vote-option.selected {
+    background: rgba(40, 167, 69, 0.1);
+    border-left-color: #28a745;
+}
+
+/* Hover states for selected buttons */
+.goalv-vote-btn.selected:hover,
+.goalv-grid-vote-btn.selected:hover,
+.goalv-vote-btn-inline.selected:hover {
+    background: #005a87 !important;
+    color: white !important;
+}
+
+/* Loading state for selected buttons */
+.goalv-vote-btn.selected.loading {
+    background: #6c757d !important;
+    color: white !important;
+    cursor: wait;
+}
+
+/* Ensure text color for selected state */
+.goalv-vote-btn.selected .goalv-percentage,
+.goalv-vote-btn.selected .goalv-vote-count,
+.goalv-vote-btn.selected .goalv-option-text,
+.goalv-grid-vote-btn.selected .goalv-grid-percentage,
+.goalv-grid-vote-btn.selected .goalv-grid-vote-count,
+.goalv-vote-btn-inline.selected .goalv-inline-vote-count {
+    color: white !important;
+}
+
+/* Multiple votes indicator styling */
+.goalv-multiple-votes-indicator {
+    margin-bottom: 15px;
+    padding: 8px 12px;
+    background: #d1ecf1;
+    border: 1px solid #bee5eb;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #0c5460;
+}
+
+.goalv-votes-badge {
+    background: #17a2b8;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+/* Animation for selection */
+.goalv-vote-btn,
+.goalv-grid-vote-btn,
+.goalv-vote-btn-inline {
+    transition: all 0.3s ease;
+}
+
+.goalv-vote-btn.selected,
+.goalv-grid-vote-btn.selected,
+.goalv-vote-btn-inline.selected {
+    animation: voteSelected 0.4s ease;
+}
+
+@keyframes voteSelected {
+    0% {
+        transform: scale(1);
+        box-shadow: none;
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(0, 124, 186, 0.4);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 2px 4px rgba(0, 124, 186, 0.3);
+    }
+}
+
+/* Focus states for accessibility */
+.goalv-vote-btn.selected:focus,
+.goalv-grid-vote-btn.selected:focus,
+.goalv-vote-btn-inline.selected:focus {
+    outline: 2px solid #107025;
+    outline-offset: 2px;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .goalv-vote-btn.selected,
+    .goalv-grid-vote-btn.selected,
+    .goalv-vote-btn-inline.selected {
+        font-weight: bold;
+        box-shadow: 0 1px 3px rgba(0, 124, 186, 0.3);
+    }
+    
+    .goalv-vote-option.selected {
+        border-left-width: 3px;
+        padding-left: 12px;
+    }
+}
+
+.goalv-options-group {
+                margin: 20px 0;
+                padding: 15px;
+                border: 1px solid #ddd;
+                background: #f9f9f9;
+            }
+
+            .goalv-options-sortable {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            .goalv-option-item {
+                display: flex;
+                align-items: center;
+                padding: 10px;
+                margin: 5px 0;
+                background: white;
+                border: 1px solid #ccc;
+                border-radius: 3px;
+                cursor: move;
+            }
+
+            .goalv-option-item.custom-option {
+                border-left: 4px solid #2271b1;
+            }
+
+            .goalv-option-item.default-option {
+                border-left: 4px solid #72aee6;
+            }
+
+            .goalv-drag-handle {
+                margin-right: 10px;
+                color: #666;
+                cursor: grab;
+            }
+
+            .goalv-option-text {
+                flex-grow: 1;
+                font-weight: 500;
+            }
+
+            .goalv-option-votes {
+                margin: 0 10px;
+                color: #666;
+                font-size: 0.9em;
+            }
+
+            .goalv-default-label {
+                background: #72aee6;
+                color: white;
+                padding: 3px 8px;
+                border-radius: 3px;
+                font-size: 0.8em;
+            }
+
+            .goalv-remove-option {
+                color: #d63638;
+                text-decoration: none;
+            }
+
+            .goalv-remove-option:hover {
+                color: #d63638;
+            }
+
+            .goalv-sort-placeholder {
+                height: 50px;
+                background: #f0f0f0;
+                border: 2px dashed #ccc;
+                margin: 5px 0;
+            }
+
+            .goalv-add-option-form {
+                margin-bottom: 30px;
+                padding: 15px;
+                background: #fff;
+                border: 1px solid #ccc;
+            }
+ /* Custom Voting Options Admin Interface CSS */
+
+/* Custom Options Container */
+#goalv-custom-options-container {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 20px;
+    margin: 10px 0;
+}
+
+/* Add Option Form */
+.goalv-add-option-form {
+    background: #f9f9f9;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.goalv-add-option-form h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.goalv-add-option-form .form-table tr td {
+    padding: 8px;
+    vertical-align: middle;
+}
+
+.goalv-add-option-form .form-table tr td:first-child {
+    width: 60%;
+}
+
+.goalv-add-option-form .form-table tr td:nth-child(2) {
+    width: 25%;
+}
+
+.goalv-add-option-form .form-table tr td:last-child {
+    width: 15%;
+}
+
+/* Options Groups */
+.goalv-options-group {
+    margin-bottom: 25px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.goalv-options-group h5 {
+    background: #f1f1f1;
+    margin: 0;
+    padding: 10px 15px;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #666;
+}
+
+/* Sortable Options List */
+.goalv-options-sortable {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    min-height: 50px;
+}
+
+.goalv-option-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    border-bottom: 1px solid #f0f0f0;
+    background: #fff;
+    transition: all 0.2s ease;
+    cursor: move;
+}
+
+.goalv-option-item:last-child {
+    border-bottom: none;
+}
+
+.goalv-option-item:hover {
+    background: #f8f8f8;
+}
+
+.goalv-option-item.ui-sortable-helper {
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transform: rotate(2deg);
+}
+
+.goalv-option-item.custom-option {
+    border-left: 3px solid #107025;
+}
+
+.goalv-option-item.default-option {
+    border-left: 3px solid #46b450;
+    background: #f9f9f9;
+}
+
+/* Option Item Elements */
+.goalv-drag-handle {
+    color: #ccc;
+    font-size: 14px;
+    margin-right: 10px;
+    cursor: grab;
+    user-select: none;
+}
+
+.goalv-drag-handle:hover {
+    color: #107025;
+}
+
+.goalv-option-text {
+    flex: 1;
+    font-weight: 500;
+    color: #333;
+}
+
+.goalv-option-votes {
+    color: #666;
+    font-size: 12px;
+    margin-right: 10px;
+    font-style: italic;
+}
+
+.goalv-default-label {
+    background: #46b450;
+    color: white;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+.goalv-remove-option {
+    color: #dc3232;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+}
+
+.goalv-remove-option:hover {
+    background: #dc3232;
+    color: white;
+}
+
+/* Sortable Placeholder */
+.goalv-sort-placeholder {
+    height: 40px;
+    background: #107025;
+    border: 2px dashed #005a87;
+    margin: 2px 0;
+    border-radius: 4px;
+    opacity: 0.3;
+}
+
+/* Empty State */
+.goalv-options-group .description {
+    padding: 20px 15px;
+    color: #666;
+    font-style: italic;
+    text-align: center;
+    margin: 0;
+}
+
+/* Loading States */
+.goalv-option-item.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+#add-custom-option-btn.loading::after {
+    content: " ";
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+    margin-left: 5px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 782px) {
+    .goalv-add-option-form .form-table,
+    .goalv-add-option-form .form-table tbody,
+    .goalv-add-option-form .form-table tr,
+    .goalv-add-option-form .form-table td {
+        display: block;
+        width: 100%;
+    }
+    
+    .goalv-add-option-form .form-table tr td {
+        padding: 5px 0;
+        border: none;
+    }
+    
+    .goalv-option-item {
+        flex-wrap: wrap;
+        padding: 10px;
+    }
+    
+    .goalv-drag-handle {
+        order: 1;
+        margin-right: 8px;
+    }
+    
+    .goalv-option-text {
+        order: 2;
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .goalv-option-votes,
+    .goalv-default-label,
+    .goalv-remove-option {
+        order: 3;
+        margin-top: 5px;
+    }
+}
+
+/* Success/Error Messages */
+.goalv-option-message {
+    padding: 8px 12px;
+    border-radius: 3px;
+    margin: 10px 0;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.goalv-option-message.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.goalv-option-message.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Option Type Badges */
+.goalv-option-type-badge {
+    background: #107025;
+    color: white;
+    font-size: 10px;
+    padding: 2px 5px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+.goalv-option-type-badge.detailed {
+    background: #dc3232;
+}
+
+/* Enhanced Form Styling */
+#goalv-custom-options-container input[type="text"],
+#goalv-custom-options-container select {
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 6px 10px;
+    font-size: 13px;
+}
+
+#goalv-custom-options-container input[type="text"]:focus,
+#goalv-custom-options-container select:focus {
+    border-color: #05661c;
+    box-shadow: 0 0 0 1px #078a21;
+    outline: none;
+}
+
+#add-custom-option-btn {
+    background: #107025;
+    border-color: #107025;
+    color: white;
+    font-weight: 500;
+    padding: 6px 16px;
+    font-size: 13px;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+}
+
+#add-custom-option-btn:hover {
+    background: #005a87;
+    border-color: #005a87;
+    transform: translateY(-1px);
+}
+
+#add-custom-option-btn:active {
+    transform: translateY(0);
+}
+
+/* Quick Action Buttons */
+.goalv-quick-actions {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.goalv-quick-actions .button {
+    margin-right: 10px;
+    font-size: 12px;
+}
+
+/* Statistics Display */
+.goalv-options-stats {
+    background: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 3px;
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    font-size: 12px;
+    color: #666;
+}
+
+.goalv-options-stats strong {
+    color: #333;
+}
+
+/* Animation for new options */
+.goalv-option-item.newly-added {
+    animation: slideInFromTop 0.3s ease-out;
+}
+
+@keyframes slideInFromTop {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Dark Mode Support (if needed) */
+@media (prefers-color-scheme: dark) {
+    .goalv-options-group {
+        border-color: #555;
+    }
+    
+    .goalv-options-group h5 {
+        background: #333;
+        color: #ccc;
+        border-bottom-color: #555;
+    }
+    
+    .goalv-option-item {
+        background: #2c2c2c;
+        border-bottom-color: #555;
+        color: #ccc;
+    }
+    
+    .goalv-option-item:hover {
+        background: #3c3c3c;
+    }
+    
+    .goalv-option-item.default-option {
+        background: #2a2a2a;
+    }
+}
+

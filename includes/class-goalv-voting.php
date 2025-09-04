@@ -1,0 +1,909 @@
+<?php
+/**
+ * Voting System Handler - FIXED VERSION
+ */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+class GoalV_Voting
+{
+
+    public function __construct()
+    {
+        add_action('wp_ajax_goalv_cast_vote', array($this, 'handle_vote'));
+        add_action('wp_ajax_nopriv_goalv_cast_vote', array($this, 'handle_vote'));
+        add_action('wp_ajax_goalv_get_vote_results', array($this, 'get_vote_results'));
+        add_action('wp_ajax_nopriv_goalv_get_vote_results', array($this, 'get_vote_results'));
+    }
+
+    /**
+     * Handle vote submission - UPDATED WITH MULTIPLE VOTES SUPPORT
+     */
+    public function handle_vote()
+    {
+        check_ajax_referer('goalv_vote_nonce', 'nonce');
+
+        $match_id = intval($_POST['match_id']);
+        $option_id = intval($_POST['option_id']);
+        $vote_location = sanitize_text_field($_POST['vote_location']);
+
+        // FIX 1: Handle 'table' location as 'homepage' for data sync
+        if ($vote_location === 'table') {
+            $vote_location = 'homepage';
+        }
+
+        if (!$match_id || !$option_id || !in_array($vote_location, array('homepage', 'details'))) {
+            wp_send_json_error(__('Invalid vote data', 'goalv'));
+        }
+
+        // Check if match exists
+        $match = get_post($match_id);
+        if (!$match || $match->post_type !== 'goalv_matches') {
+            wp_send_json_error(__('Match not found', 'goalv'));
+        }
+
+        // Check if voting is allowed for this location
+        if ($vote_location === 'details' && !is_user_logged_in()) {
+            wp_send_json_error(__('Login required for detailed voting', 'goalv'));
+        }
+
+        // Check if option exists and belongs to match
+        $option = $this->get_vote_option($option_id, $match_id);
+        if (!$option) {
+            wp_send_json_error(__('Invalid voting option', 'goalv'));
+        }
+
+        // Check if multiple votes are allowed
+        $allow_multiple_votes = get_option('goalv_allow_multiple_votes', 'no') === 'yes';
+
+        $result = false;
+        $action = '';
+        $user_votes = array();
+
+        if ($allow_multiple_votes) {
+            // MULTIPLE VOTES MODE: Users can vote for multiple options
+
+            // Check if user already voted for this specific option
+            $existing_option_vote = $this->get_existing_option_vote($match_id, $option_id, $vote_location);
+
+            if ($existing_option_vote) {
+                // User is trying to vote for same option again - remove their vote (toggle off)
+                $result = $this->remove_vote($existing_option_vote->id, $option_id);
+                $action = 'removed';
+
+                if ($result) {
+                    // Clear vote cache
+                    $this->clear_vote_cache($match_id);
+
+                    // Get updated user votes
+                    $user_votes = $this->get_user_votes($match_id, $vote_location);
+
+                    // Get updated results
+                    $vote_results = $this->calculate_vote_percentages($match_id, $vote_location);
+
+                    wp_send_json_success(array(
+                        'message' => __('Vote removed successfully', 'goalv'),
+                        'action' => $action,
+                        'results' => $vote_results,
+                        'user_votes' => $user_votes, // Return array of user's votes
+                        'multiple_votes_enabled' => true
+                    ));
+                } else {
+                    wp_send_json_error(__('Failed to remove vote', 'goalv'));
+                }
+
+            } else {
+                // Cast new vote for this option
+                $result = $this->cast_new_vote($match_id, $option_id, $vote_location);
+                $action = 'added';
+
+                if ($result) {
+                    // Clear vote cache
+                    $this->clear_vote_cache($match_id);
+
+                    // Get updated user votes
+                    $user_votes = $this->get_user_votes($match_id, $vote_location);
+
+                    // Get updated results
+                    $vote_results = $this->calculate_vote_percentages($match_id, $vote_location);
+
+                    wp_send_json_success(array(
+                        'message' => __('Vote added successfully', 'goalv'),
+                        'action' => $action,
+                        'results' => $vote_results,
+                        'user_votes' => $user_votes, // Return array of user's votes
+                        'multiple_votes_enabled' => true
+                    ));
+                } else {
+                    wp_send_json_error(__('Failed to cast vote', 'goalv'));
+                }
+            }
+
+        } else {
+            // SINGLE VOTE MODE: Original behavior - user can only vote for one option
+
+            $existing_vote = $this->get_existing_vote($match_id, $vote_location);
+
+            if ($existing_vote) {
+                // User has already voted for some option in this match
+
+                if ($existing_vote->option_id == $option_id) {
+                    // User is clicking the same option they already voted for
+                    // Check if vote changes are allowed - if not, treat as toggle off
+                    $allow_change = $this->can_change_vote($vote_location);
+
+                    if (!$allow_change) {
+                        // Remove the vote (toggle off behavior)
+                        $result = $this->remove_vote($existing_vote->id, $existing_vote->option_id);
+                        $action = 'removed';
+                        $user_votes = array(); // No votes after removal
+                    } else {
+                        // Vote changes allowed but user clicked same option - toggle off
+                        $result = $this->remove_vote($existing_vote->id, $existing_vote->option_id);
+                        $action = 'removed';
+                        $user_votes = array(); // No votes after removal
+                    }
+                } else {
+                    // User is changing their vote to a different option
+                    $allow_change = $this->can_change_vote($vote_location);
+                    if (!$allow_change) {
+                        wp_send_json_error(__('Vote changes not allowed', 'goalv'));
+                    }
+
+                    // Update existing vote to new option
+                    $result = $this->update_vote($existing_vote->id, $option_id, $existing_vote->option_id);
+                    $action = 'changed';
+                    $user_votes = array($option_id); // Single new vote
+                }
+
+            } else {
+                // User hasn't voted yet - cast new vote
+                $result = $this->cast_new_vote($match_id, $option_id, $vote_location);
+                $action = 'added';
+                $user_votes = array($option_id); // Single new vote
+            }
+
+            if ($result) {
+                // Clear vote cache
+                $this->clear_vote_cache($match_id);
+
+                // Get updated results
+                $vote_results = $this->calculate_vote_percentages($match_id, $vote_location);
+
+                $message = '';
+                switch ($action) {
+                    case 'added':
+                        $message = __('Vote recorded successfully', 'goalv');
+                        break;
+                    case 'changed':
+                        $message = __('Vote updated successfully', 'goalv');
+                        break;
+                    case 'removed':
+                        $message = __('Vote removed successfully', 'goalv');
+                        break;
+                }
+
+                wp_send_json_success(array(
+                    'message' => $message,
+                    'action' => $action,
+                    'results' => $vote_results,
+                    'user_votes' => $user_votes, // Return array for consistency
+                    'multiple_votes_enabled' => false
+                ));
+            } else {
+                wp_send_json_error(__('Failed to process vote', 'goalv'));
+            }
+        }
+    }
+
+    /**
+     * Get existing vote for specific option (for multiple votes mode)
+     */
+    private function get_existing_option_vote($match_id, $option_id, $vote_location)
+    {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'goalv_votes';
+
+        if (is_user_logged_in()) {
+            $user_id = get_current_user_id();
+            return $wpdb->get_row($wpdb->prepare(
+                "SELECT * FROM $table_name WHERE match_id = %d AND option_id = %d AND user_id = %d AND vote_location = %s",
+                $match_id,
+                $option_id,
+                $user_id,
+                $vote_location
+            ));
+        } else {
+            $browser_id = $this->get_browser_id();
+            $user_ip = $this->get_user_ip();
+            return $wpdb->get_row($wpdb->prepare(
+                "SELECT * FROM $table_name WHERE match_id = %d AND option_id = %d AND browser_id = %s AND user_ip = %s AND vote_location = %s AND user_id IS NULL",
+                $match_id,
+                $option_id,
+                $browser_id,
+                $user_ip,
+                $vote_location
+            ));
+        }
+    }
+
+    /**
+     * Remove a vote (for toggle functionality)
+     */
+    private function remove_vote($vote_id, $option_id)
+    {
+        global $wpdb;
+
+        $votes_table = $wpdb->prefix . 'goalv_votes';
+        $options_table = $wpdb->prefix . 'goalv_vote_options';
+
+        // Remove vote
+        $result = $wpdb->delete($votes_table, array('id' => $vote_id));
+
+        if ($result) {
+            // Decrement vote count
+            $wpdb->query($wpdb->prepare(
+                "UPDATE $options_table SET votes_count = votes_count - 1 WHERE id = %d AND votes_count > 0",
+                $option_id
+            ));
+        }
+
+        return $result;
+    }
+
+    /**
+     * Get user's current votes for a match (modified for multiple votes)
+     */
+    public function get_user_votes($match_id, $vote_location)
+    {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'goalv_votes';
+
+        if ($vote_location === 'table') {
+            $vote_location = 'homepage';
+        }
+
+        if (is_user_logged_in()) {
+            $user_id = get_current_user_id();
+            $votes = $wpdb->get_results($wpdb->prepare(
+                "SELECT option_id FROM $table_name WHERE match_id = %d AND user_id = %d AND vote_location = %s",
+                $match_id,
+                $user_id,
+                $vote_location
+            ));
+        } else {
+            $browser_id = $this->get_browser_id();
+            $user_ip = $this->get_user_ip();
+            $votes = $wpdb->get_results($wpdb->prepare(
+                "SELECT option_id FROM $table_name WHERE match_id = %d AND browser_id = %s AND user_ip = %s AND vote_location = %s AND user_id IS NULL",
+                $match_id,
+                $browser_id,
+                $user_ip,
+                $vote_location
+            ));
+        }
+
+        return array_column($votes, 'option_id');
+    }
+
+    /**
+     * Get vote results
+     */
+    public function get_vote_results()
+    {
+        $match_id = intval($_GET['match_id']);
+        $vote_location = sanitize_text_field($_GET['vote_location']);
+
+        // FIX 4: Handle 'table' location as 'homepage'
+        if ($vote_location === 'table') {
+            $vote_location = 'homepage';
+        }
+
+        if (!$match_id || !in_array($vote_location, array('homepage', 'details'))) {
+            wp_send_json_error(__('Invalid request', 'goalv'));
+        }
+
+        $results = $this->calculate_vote_percentages($match_id, $vote_location);
+        wp_send_json_success($results);
+    }
+
+    /**
+     * Get vote option
+     */
+    private function get_vote_option($option_id, $match_id)
+    {
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . 'goalv_vote_options';
+        return $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $table_name WHERE id = %d AND match_id = %d",
+            $option_id,
+            $match_id
+        ));
+    }
+
+    /**
+     * Get existing vote - MODIFIED for better guest user handling
+     */
+    private function get_existing_vote($match_id, $vote_location)
+    {
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . 'goalv_votes';
+
+        if (is_user_logged_in()) {
+            $user_id = get_current_user_id();
+            return $wpdb->get_row($wpdb->prepare(
+                "SELECT * FROM $table_name WHERE match_id = %d AND user_id = %d AND vote_location = %s",
+                $match_id,
+                $user_id,
+                $vote_location
+            ));
+        } else {
+            // FIX 5: Better guest user tracking - use unique session per match
+            $browser_id = $this->get_browser_id();
+            $user_ip = $this->get_user_ip();
+
+            // For guest users, check by browser_id and match_id combination
+            // This allows guests to vote on multiple matches
+            return $wpdb->get_row($wpdb->prepare(
+                "SELECT * FROM $table_name WHERE match_id = %d AND browser_id = %s AND user_ip = %s AND vote_location = %s AND user_id IS NULL",
+                $match_id,
+                $browser_id,
+                $user_ip,
+                $vote_location
+            ));
+        }
+    }
+
+    /**
+     * Check if vote changes are allowed
+     */
+    private function can_change_vote($vote_location)
+    {
+        $general_setting = get_option('goalv_allow_vote_change', 'yes');
+        if ($general_setting !== 'yes') {
+            return false;
+        }
+
+        if ($vote_location === 'homepage') {
+            return get_option('goalv_allow_homepage_vote_change', 'yes') === 'yes';
+        } else {
+            return get_option('goalv_allow_details_vote_change', 'yes') === 'yes';
+        }
+    }
+
+    /**
+     * Cast new vote
+     */
+    private function cast_new_vote($match_id, $option_id, $vote_location)
+    {
+        global $wpdb;
+
+        $vote_data = array(
+            'match_id' => $match_id,
+            'option_id' => $option_id,
+            'vote_location' => $vote_location,
+            'user_ip' => $this->get_user_ip(),
+            'browser_id' => $this->get_browser_id()
+        );
+
+        if (is_user_logged_in()) {
+            $vote_data['user_id'] = get_current_user_id();
+        } else {
+            $vote_data['user_id'] = null; // Explicitly set null for guest users
+        }
+
+        $votes_table = $wpdb->prefix . 'goalv_votes';
+        $options_table = $wpdb->prefix . 'goalv_vote_options';
+
+        // Insert vote
+        $result = $wpdb->insert($votes_table, $vote_data);
+
+        if ($result) {
+            // Increment vote count
+            $wpdb->query($wpdb->prepare(
+                "UPDATE $options_table SET votes_count = votes_count + 1 WHERE id = %d",
+                $option_id
+            ));
+        }
+
+        return $result;
+    }
+
+    /**
+     * Update existing vote
+     */
+    private function update_vote($vote_id, $new_option_id, $old_option_id)
+    {
+        global $wpdb;
+
+        $votes_table = $wpdb->prefix . 'goalv_votes';
+        $options_table = $wpdb->prefix . 'goalv_vote_options';
+
+        // Update vote
+        $result = $wpdb->update(
+            $votes_table,
+            array('option_id' => $new_option_id),
+            array('id' => $vote_id)
+        );
+
+        if ($result !== false) {
+            // Decrement old option count
+            $wpdb->query($wpdb->prepare(
+                "UPDATE $options_table SET votes_count = votes_count - 1 WHERE id = %d AND votes_count > 0",
+                $old_option_id
+            ));
+
+            // Increment new option count
+            $wpdb->query($wpdb->prepare(
+                "UPDATE $options_table SET votes_count = votes_count + 1 WHERE id = %d",
+                $new_option_id
+            ));
+        }
+
+        return $result !== false;
+    }
+
+    /**
+     * Calculate vote percentages
+     */
+
+
+    private function calculate_vote_percentages($match_id, $vote_location)
+    {
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . 'goalv_vote_options';
+        $option_type = ($vote_location === 'homepage') ? 'basic' : 'detailed';
+
+        // Get all options for this match and type (including custom options)
+        $options = $wpdb->get_results($wpdb->prepare(
+            "SELECT id, option_text, votes_count, is_custom, display_order 
+         FROM $table_name 
+         WHERE match_id = %d AND option_type = %s 
+         ORDER BY is_custom ASC, display_order ASC, id ASC",
+            $match_id,
+            $option_type
+        ));
+
+        $total_votes = array_sum(array_column($options, 'votes_count'));
+        $results = array();
+
+        foreach ($options as $option) {
+            $percentage = $total_votes > 0 ? round(($option->votes_count / $total_votes) * 100, 1) : 0;
+            $results[] = array(
+                'option_id' => $option->id,
+                'option_text' => $option->option_text,
+                'votes_count' => $option->votes_count,
+                'percentage' => $percentage,
+                'is_custom' => (bool) $option->is_custom,
+                'display_order' => $option->display_order
+            );
+        }
+
+        return $results;
+    }
+
+    /**
+     * Get vote option details - NEW METHOD
+     */
+    public function get_vote_option_details($option_id)
+    {
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . 'goalv_vote_options';
+        return $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $table_name WHERE id = %d",
+            $option_id
+        ));
+    }
+
+    /**
+     * Get user's current vote for a match - MODIFIED
+     */
+    public function get_user_vote($match_id, $vote_location)
+    {
+        // Handle table location as homepage
+        if ($vote_location === 'table') {
+            $vote_location = 'homepage';
+        }
+
+        $existing_vote = $this->get_existing_vote($match_id, $vote_location);
+        return $existing_vote ? $existing_vote->option_id : null;
+    }
+
+    /**
+     * Get custom options count for a match - NEW METHOD
+     */
+    public function get_custom_options_count($match_id, $option_type = null)
+    {
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . 'goalv_vote_options';
+
+        if ($option_type) {
+            return $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM $table_name 
+             WHERE match_id = %d AND option_type = %s AND is_custom = 1",
+                $match_id,
+                $option_type
+            ));
+        } else {
+            return $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM $table_name 
+             WHERE match_id = %d AND is_custom = 1",
+                $match_id
+            ));
+        }
+    }
+
+    /**
+     * Get voting statistics for admin - NEW METHOD
+     */
+    public function get_voting_statistics($match_id)
+    {
+        global $wpdb;
+
+        $options_table = $wpdb->prefix . 'goalv_vote_options';
+        $votes_table = $wpdb->prefix . 'goalv_votes';
+
+        // Get option counts
+        $total_options = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $options_table WHERE match_id = %d",
+            $match_id
+        ));
+
+        $custom_options = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $options_table WHERE match_id = %d AND is_custom = 1",
+            $match_id
+        ));
+
+        $basic_options = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $options_table WHERE match_id = %d AND option_type = 'basic'",
+            $match_id
+        ));
+
+        $detailed_options = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $options_table WHERE match_id = %d AND option_type = 'detailed'",
+            $match_id
+        ));
+
+        // Get vote counts
+        $total_votes = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $votes_table WHERE match_id = %d",
+            $match_id
+        ));
+
+        $homepage_votes = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $votes_table WHERE match_id = %d AND vote_location = 'homepage'",
+            $match_id
+        ));
+
+        $details_votes = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $votes_table WHERE match_id = %d AND vote_location = 'details'",
+            $match_id
+        ));
+
+        $unique_voters = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(DISTINCT COALESCE(user_id, browser_id)) FROM $votes_table WHERE match_id = %d",
+            $match_id
+        ));
+
+        return array(
+            'total_options' => (int) $total_options,
+            'custom_options' => (int) $custom_options,
+            'basic_options' => (int) $basic_options,
+            'detailed_options' => (int) $detailed_options,
+            'total_votes' => (int) $total_votes,
+            'homepage_votes' => (int) $homepage_votes,
+            'details_votes' => (int) $details_votes,
+            'unique_voters' => (int) $unique_voters
+        );
+    }
+
+    /**
+     * Validate custom option - NEW METHOD
+     */
+    public function validate_custom_option($option_text, $option_type, $match_id)
+    {
+        $errors = array();
+
+        // Validate option text
+        if (empty(trim($option_text))) {
+            $errors[] = __('Option text cannot be empty', 'goalv');
+        }
+
+        if (strlen($option_text) > 255) {
+            $errors[] = __('Option text is too long (maximum 255 characters)', 'goalv');
+        }
+
+        // Validate option type
+        if (!in_array($option_type, array('basic', 'detailed'))) {
+            $errors[] = __('Invalid option type', 'goalv');
+        }
+
+        // Check for duplicate options
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'goalv_vote_options';
+
+        $existing = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $table_name 
+         WHERE match_id = %d AND option_type = %s AND option_text = %s",
+            $match_id,
+            $option_type,
+            trim($option_text)
+        ));
+
+        if ($existing > 0) {
+            $errors[] = __('An option with this text already exists', 'goalv');
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Delete custom option and its votes - NEW METHOD
+     */
+    public function delete_custom_option($option_id)
+    {
+        global $wpdb;
+
+        $options_table = $wpdb->prefix . 'goalv_vote_options';
+        $votes_table = $wpdb->prefix . 'goalv_votes';
+
+        // Verify it's a custom option
+        $option = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $options_table WHERE id = %d AND is_custom = 1",
+            $option_id
+        ));
+
+        if (!$option) {
+            return false;
+        }
+
+        // Delete all votes for this option first
+        $votes_deleted = $wpdb->delete($votes_table, array('option_id' => $option_id));
+
+        // Delete the option
+        $option_deleted = $wpdb->delete($options_table, array('id' => $option_id));
+
+        // Clear cache if successful
+        if ($option_deleted) {
+            $this->clear_vote_cache($option->match_id);
+
+            // Log the deletion
+            error_log("GoalV: Deleted custom option {$option_id} with {$votes_deleted} votes");
+
+            return true;
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Get browser ID - ENHANCED
+     */
+    private function get_browser_id()
+    {
+        if (isset($_POST['browser_id']) && !empty($_POST['browser_id'])) {
+            return sanitize_text_field($_POST['browser_id']);
+        }
+
+        // Fallback: generate based on user agent and IP with session
+        $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
+        $ip = $this->get_user_ip();
+        $session_id = session_id() ? session_id() : 'no_session';
+
+        return substr(md5($user_agent . $ip . $session_id), 0, 32);
+    }
+
+    /**
+     * Get user IP
+     */
+    private function get_user_ip()
+    {
+        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+            return $_SERVER['HTTP_CLIENT_IP'];
+        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            return $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } else {
+            return $_SERVER['REMOTE_ADDR'];
+        }
+    }
+
+    /**
+     * Get vote options grouped by category - NEW METHOD
+     */
+    public function get_vote_options_grouped($match_id, $option_type = 'detailed')
+    {
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . 'goalv_vote_options';
+        $options = $wpdb->get_results($wpdb->prepare(
+            "SELECT * FROM $table_name 
+         WHERE match_id = %d AND option_type = %s 
+         ORDER BY 
+            CASE category
+                WHEN 'match_result' THEN 1
+                WHEN 'match_score' THEN 2
+                WHEN 'goals_threshold' THEN 3
+                WHEN 'both_teams_score' THEN 4
+                WHEN 'first_to_score' THEN 5
+                ELSE 6
+            END,
+            is_custom ASC, 
+            display_order ASC, 
+            id ASC",
+            $match_id,
+            $option_type
+        ));
+
+        return $this->group_options_by_category($options);
+    }
+
+    /**
+     * Group options by category with proper labels - NEW METHOD
+     */
+    private function group_options_by_category($options)
+    {
+        $category_labels = array(
+            'match_result' => __('Match Result', 'goalv'),
+            'match_score' => __('Exact Score', 'goalv'),
+            'goals_threshold' => __('Total Goals', 'goalv'),
+            'both_teams_score' => __('Both Teams to Score', 'goalv'),
+            'first_to_score' => __('First Team to Score', 'goalv'),
+            'other' => __('Other Predictions', 'goalv')
+        );
+
+        $grouped = array();
+
+        foreach ($options as $option) {
+            $category = $option->category ?: 'other';
+
+            if (!isset($grouped[$category])) {
+                $grouped[$category] = array(
+                    'label' => isset($category_labels[$category]) ? $category_labels[$category] : ucfirst(str_replace('_', ' ', $category)),
+                    'options' => array(),
+                    'order' => $this->get_category_order($category)
+                );
+            }
+
+            $grouped[$category]['options'][] = $option;
+        }
+
+        // Sort by category order
+        uasort($grouped, function ($a, $b) {
+            return $a['order'] - $b['order'];
+        });
+
+        return $grouped;
+    }
+
+    /**
+     * Get display order for categories - NEW METHOD
+     */
+    private function get_category_order($category)
+    {
+        $order_map = array(
+            'match_result' => 1,
+            'match_score' => 2,
+            'goals_threshold' => 3,
+            'both_teams_score' => 4,
+            'first_to_score' => 5,
+            'other' => 6
+        );
+
+        return isset($order_map[$category]) ? $order_map[$category] : 99;
+    }
+
+
+
+    /**
+     * Get vote options for a match - UPDATED to include custom options with proper ordering
+     */
+    public function get_vote_options($match_id, $option_type = 'basic')
+    {
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . 'goalv_vote_options';
+        return $wpdb->get_results($wpdb->prepare(
+            "SELECT *, COALESCE(category, 'other') as category FROM $table_name 
+         WHERE match_id = %d AND option_type = %s 
+         ORDER BY 
+            CASE COALESCE(category, 'other')
+                WHEN 'match_result' THEN 1
+                WHEN 'match_score' THEN 2
+                WHEN 'goals_threshold' THEN 3
+                WHEN 'both_teams_score' THEN 4
+                WHEN 'first_to_score' THEN 5
+                ELSE 6
+            END,
+            is_custom ASC, 
+            display_order ASC, 
+            id ASC",
+            $match_id,
+            $option_type
+        ));
+    }
+
+    /**
+     * Get default category for an option text - NEW METHOD
+     */
+    public function get_default_category($option_text)
+    {
+        $option_text = strtolower($option_text);
+
+        // Match result patterns
+        if (in_array($option_text, ['home team win', 'draw', 'away team win'])) {
+            return 'match_result';
+        }
+
+        // Goals threshold patterns
+        if (strpos($option_text, 'over') !== false || strpos($option_text, 'under') !== false) {
+            return 'goals_threshold';
+        }
+
+        // Both teams score patterns
+        if (strpos($option_text, 'both teams score') !== false) {
+            return 'both_teams_score';
+        }
+
+        // Score prediction patterns (contains dash like 2-1)
+        if (preg_match('/\d+-\d+/', $option_text)) {
+            return 'match_score';
+        }
+
+        // First to score patterns
+        if (strpos($option_text, 'scores first') !== false) {
+            return 'first_to_score';
+        }
+
+        return 'other';
+    }
+
+    /**
+     * Get all vote options for a match (both basic and detailed) - NEW METHOD
+     */
+    public function get_all_vote_options($match_id)
+    {
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . 'goalv_vote_options';
+        return $wpdb->get_results($wpdb->prepare(
+            "SELECT * FROM $table_name 
+         WHERE match_id = %d 
+         ORDER BY 
+            option_type ASC, 
+            is_custom ASC, 
+            display_order ASC, 
+            id ASC",
+            $match_id
+        ));
+    }
+
+    public function get_vote_results_cached($match_id, $vote_location)
+    {
+        $cache_key = "goalv_vote_results_{$match_id}_{$vote_location}";
+        $cached_results = get_transient($cache_key);
+
+        if ($cached_results !== false) {
+            return $cached_results;
+        }
+
+        $results = $this->calculate_vote_percentages($match_id, $vote_location);
+        set_transient($cache_key, $results, 300); // Cache for 5 minutes
+
+        return $results;
+    }
+
+    // Clear cache when votes are cast:
+    public function clear_vote_cache($match_id)
+    {
+        delete_transient("goalv_vote_results_{$match_id}_homepage");
+        delete_transient("goalv_vote_results_{$match_id}_details");
+    }
+}

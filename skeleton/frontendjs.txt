@@ -1,0 +1,323 @@
+/**
+ * GoalV Football Predictions - Frontend JavaScript (Function Signatures Only)
+ * Handles voting functionality for homepage and single match pages
+ */
+
+(function ($) {
+    'use strict';
+
+    // Frontend voting system
+    const GoalVFrontend = {
+        // State management properties
+        votingInProgress: new Set(),
+        userVotes: new Map(), // Stores arrays of vote IDs for multiple votes
+        updateThrottle: null,
+
+        /**
+         * Initialize the frontend voting system
+         */
+        init: function () {
+            // Main initialization function
+        },
+
+        /**
+         * Check if GoalV AJAX object is properly loaded
+         */
+        isInitialized: function () {
+            // Validation function for initialization
+        },
+
+        /**
+         * Bind all event handlers for voting and interactions
+         */
+        bindEvents: function () {
+            // Event binding function
+        },
+
+        /**
+         * Handle vote button clicks - supports multiple votes
+         */
+        handleVote: function (e) {
+            // Vote click handler with validation
+        },
+
+        /**
+         * Submit vote via AJAX
+         */
+        submitVote: function ($btn, matchId, optionId, location) {
+            // AJAX vote submission with loading states
+        },
+
+        /**
+         * Process successful vote response from server
+         */
+        handleVoteResponse: function (response, $btn, matchId, location, optionId) {
+            // Success response handler
+        },
+
+        /**
+         * Handle vote submission errors
+         */
+        handleVoteError: function ($btn, matchId, location) {
+            // Error response handler
+        },
+
+        /**
+         * Update UI with new vote results - supports multiple selections
+         */
+        updateVoteUI: function (matchId, location, results, selectedOptionIds) {
+            // Main UI update function for vote states
+        },
+
+        /**
+         * Update voting UI for homepage display
+         */
+        updateHomepageVoting: function ($container, results, selectedOptionIds) {
+            // Homepage-specific UI updates
+        },
+
+        /**
+         * Update voting UI for detailed match pages
+         */
+        updateDetailedVoting: function ($container, results, selectedOptionIds) {
+            // Detailed page UI updates with indicators
+        },
+
+        /**
+         * Show indicator for multiple vote selections
+         */
+        showMultipleVotesIndicator: function ($container, voteCount) {
+            // Multiple votes badge display
+        },
+
+        /**
+         * Hide multiple votes indicator
+         */
+        hideMultipleVotesIndicator: function ($container) {
+            // Remove multiple votes indicators
+        },
+
+        /**
+         * Update results summary grid on detailed pages
+         */
+        updateResultsSummary: function ($wrapper, results) {
+            // Results grid updates with percentages and counts
+        },
+
+        /**
+         * Initialize browser ID for guest user tracking
+         */
+        initBrowserId: function () {
+            // Guest user identification setup
+        },
+
+        /**
+         * Generate unique browser ID for guest users
+         */
+        generateBrowserId: function () {
+            // Browser ID generation with localStorage
+        },
+
+        /**
+         * Retrieve stored votes for guest users - supports arrays
+         */
+        getStoredVotes: function (matchId, location) {
+            // LocalStorage vote retrieval for guests
+        },
+
+        /**
+         * Store vote selections for guest users
+         */
+        storeVotes: function (matchId, location, optionIds) {
+            // LocalStorage vote persistence
+        },
+
+        /**
+         * Check if multiple votes are enabled in settings
+         */
+        isMultipleVotesEnabled: function () {
+            // Settings validation for multiple vote feature
+        },
+
+        /**
+         * Legacy support - get single stored vote
+         */
+        getStoredVote: function (matchId, location) {
+            // Backward compatibility for single vote retrieval
+        },
+
+        /**
+         * Legacy support - store single vote
+         */
+        storeVote: function (matchId, location, optionId) {
+            // Backward compatibility for single vote storage
+        },
+
+        /**
+         * Initialize stored votes from localStorage on page load
+         */
+        initStoredVotes: function () {
+            // Restore guest user vote states from storage
+        },
+
+        /**
+         * Start periodic vote result updates
+         */
+        startPeriodicUpdates: function () {
+            // Background polling for live vote updates
+        },
+
+        /**
+         * Fetch and update vote results without changing selections
+         */
+        updateVoteResults: function () {
+            // Periodic results refresh via AJAX
+        },
+
+        /**
+         * Update only vote counts and percentages, preserve selections
+         */
+        updateVoteResultsOnly: function ($container, results, location) {
+            // Results-only UI updates (no selection changes)
+        },
+
+        /**
+         * Set button loading state during vote submission
+         */
+        setVotingState: function ($btn, isLoading) {
+            // Button state management for loading feedback
+        },
+
+        /**
+         * Display status messages to users
+         */
+        showMessage: function ($container, message, type, duration = 5000) {
+            // User feedback message system
+        },
+
+        /**
+         * Handle responsive design changes
+         */
+        handleResponsive: function () {
+            // Mobile/desktop responsive adjustments
+        },
+
+        /**
+         * Add CSS animations and transitions
+         */
+        addAnimations: function () {
+            // UI animation setup for cards and buttons
+        },
+
+        /**
+         * Handle finished match states (disable voting)
+         */
+        handleVoteStates: function () {
+            // Disable voting on completed matches
+        },
+
+        /**
+         * Initialize keyboard navigation support
+         */
+        initKeyboardNav: function () {
+            // Accessibility keyboard controls
+        },
+
+        // Infinite scroll functionality object
+        infiniteScroll: {
+            isLoading: false,
+            hasMoreMatches: true,
+            currentPage: 1,
+            perPage: 10,
+            container: null
+        },
+
+        /**
+         * Initialize infinite scroll for match lists
+         */
+        initInfiniteScroll: function () {
+            // Setup infinite scroll container and events
+        },
+
+        /**
+         * Bind scroll event handlers with throttling
+         */
+        bindScrollEvents: function () {
+            // Scroll position monitoring with debouncing
+        },
+
+        /**
+         * Check if user has scrolled near bottom
+         */
+        checkScrollPosition: function () {
+            // Scroll position calculation for loading trigger
+        },
+
+        /**
+         * Load additional matches via AJAX
+         */
+        loadMoreMatches: function () {
+            // Infinite scroll AJAX loading
+        },
+
+        /**
+         * Append newly loaded matches to DOM
+         */
+        appendNewMatches: function (matchesHtml) {
+            // DOM manipulation for new match insertion
+        },
+
+        /**
+         * Add loading spinner to page
+         */
+        addLoadingIndicator: function () {
+            // Loading indicator creation
+        },
+
+        /**
+         * Show loading spinner
+         */
+        showLoadingIndicator: function () {
+            // Display loading state
+        },
+
+        /**
+         * Hide loading spinner
+         */
+        hideLoadingIndicator: function () {
+            // Remove loading state
+        },
+
+        /**
+         * Show "no more matches" message
+         */
+        showEndMessage: function () {
+            // End-of-list indicator
+        },
+
+        /**
+         * Validate vote data before submission
+         */
+        validateVoteData: function (matchId, optionId, location) {
+            // Input validation for vote parameters
+        },
+
+        /**
+         * Debounce utility function
+         */
+        debounce: function (func, wait) {
+            // Function execution throttling utility
+        }
+    };
+
+    /**
+     * Initialize when DOM is ready
+     */
+    $(document).ready(function () {
+        // DOM ready initialization with timeout
+    });
+
+    // Expose for debugging
+    window.GoalVFrontend = GoalVFrontend;
+
+})(jQuery);

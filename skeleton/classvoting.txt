@@ -1,0 +1,194 @@
+<?php
+/**
+ * Voting System Handler - Structure Only
+ */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+class GoalV_Voting
+{
+    public function __construct()
+    {
+        // Constructor implementation
+    }
+
+    /**
+     * Handle vote submission - UPDATED WITH MULTIPLE VOTES SUPPORT
+     */
+    public function handle_vote()
+    {
+        // Function implementation
+    }
+
+    /**
+     * Get existing vote for specific option (for multiple votes mode)
+     */
+    private function get_existing_option_vote($match_id, $option_id, $vote_location)
+    {
+        // Function implementation
+    }
+
+    /**
+     * Remove a vote (for toggle functionality)
+     */
+    private function remove_vote($vote_id, $option_id)
+    {
+        // Function implementation
+    }
+
+    /**
+     * Get user's current votes for a match (modified for multiple votes)
+     */
+    public function get_user_votes($match_id, $vote_location)
+    {
+        // Function implementation
+    }
+
+    /**
+     * Get vote results
+     */
+    public function get_vote_results()
+    {
+        // Function implementation
+    }
+
+    /**
+     * Get vote option
+     */
+    private function get_vote_option($option_id, $match_id)
+    {
+        // Function implementation
+    }
+
+    /**
+     * Get existing vote - MODIFIED for better guest user handling
+     */
+    private function get_existing_vote($match_id, $vote_location)
+    {
+        // Function implementation
+    }
+
+    /**
+     * Check if vote changes are allowed
+     */
+    private function can_change_vote($vote_location)
+    {
+        // Function implementation
+    }
+
+    /**
+     * Cast new vote
+     */
+    private function cast_new_vote($match_id, $option_id, $vote_location)
+    {
+        // Function implementation
+    }
+
+    /**
+     * Update existing vote
+     */
+    private function update_vote($vote_id, $new_option_id, $old_option_id)
+    {
+        // Function implementation
+    }
+
+    /**
+     * Calculate vote percentages
+     */
+    private function calculate_vote_percentages($match_id, $vote_location)
+    {
+        // Function implementation
+    }
+
+    /**
+     * Get vote option details - NEW METHOD
+     */
+    public function get_vote_option_details($option_id)
+    {
+        // Function implementation
+    }
+
+    /**
+     * Get user's current vote for a match - MODIFIED
+     */
+    public function get_user_vote($match_id, $vote_location)
+    {
+        // Function implementation
+    }
+
+    /**
+     * Get custom options count for a match - NEW METHOD
+     */
+    public function get_custom_options_count($match_id, $option_type = null)
+    {
+        // Function implementation
+    }
+
+    /**
+     * Get voting statistics for admin - NEW METHOD
+     */
+    public function get_voting_statistics($match_id)
+    {
+        // Function implementation
+    }
+
+    /**
+     * Validate custom option - NEW METHOD
+     */
+    public function validate_custom_option($option_text, $option_type, $match_id)
+    {
+        // Function implementation
+    }
+
+    /**
+     * Delete custom option and its votes - NEW METHOD
+     */
+    public function delete_custom_option($option_id)
+    {
+        // Function implementation
+    }
+
+    /**
+     * Get browser ID - ENHANCED
+     */
+    private function get_browser_id()
+    {
+        // Function implementation
+    }
+
+    /**
+     * Get user IP
+     */
+    private function get_user_ip()
+    {
+        // Function implementation
+    }
+
+    /**
+     * Get vote options for a match - UPDATED to include custom options with proper ordering
+     */
+    public function get_vote_options($match_id, $option_type = 'basic')
+    {
+        // Function implementation
+    }
+
+    /**
+     * Get all vote options for a match (both basic and detailed) - NEW METHOD
+     */
+    public function get_all_vote_options($match_id)
+    {
+        // Function implementation
+    }
+
+    public function get_vote_results_cached($match_id, $vote_location)
+    {
+        // Function implementation
+    }
+
+    public function clear_vote_cache($match_id)
+    {
+        // Function implementation
+    }
+}
