@@ -29,7 +29,7 @@ class GoalV_Voting
         $option_id = intval($_POST['option_id']);
         $vote_location = sanitize_text_field($_POST['vote_location']);
 
-        // FIX 1: Handle 'table' location as 'homepage' for data sync
+        // Handle 'table' location as 'homepage' for data sync
         if ($vote_location === 'table') {
             $vote_location = 'homepage';
         }
@@ -55,146 +55,109 @@ class GoalV_Voting
             wp_send_json_error(__('Invalid voting option', 'goalv'));
         }
 
-        // Check if multiple votes are allowed
-        $allow_multiple_votes = get_option('goalv_allow_multiple_votes', 'no') === 'yes';
+        // NEW: Get the category of the option being voted on
+        $option_category = $option->category;
+
+        // NEW: Check if user already voted in THIS CATEGORY
+        $existing_category_vote = $this->get_existing_vote_in_category($match_id, $option_category, $vote_location);
 
         $result = false;
         $action = '';
-        $user_votes = array();
 
-        if ($allow_multiple_votes) {
-            // MULTIPLE VOTES MODE: Users can vote for multiple options
+        if ($existing_category_vote) {
+            // User has already voted in this category
 
-            // Check if user already voted for this specific option
-            $existing_option_vote = $this->get_existing_option_vote($match_id, $option_id, $vote_location);
-
-            if ($existing_option_vote) {
-                // User is trying to vote for same option again - remove their vote (toggle off)
-                $result = $this->remove_vote($existing_option_vote->id, $option_id);
+            if ($existing_category_vote->option_id == $option_id) {
+                // User is clicking the same option they already voted for - remove vote (toggle off)
+                $result = $this->remove_vote($existing_category_vote->id, $option_id);
                 $action = 'removed';
-
-                if ($result) {
-                    // Clear vote cache
-                    $this->clear_vote_cache($match_id);
-
-                    // Get updated user votes
-                    $user_votes = $this->get_user_votes($match_id, $vote_location);
-
-                    // Get updated results
-                    $vote_results = $this->calculate_vote_percentages($match_id, $vote_location);
-
-                    wp_send_json_success(array(
-                        'message' => __('Vote removed successfully', 'goalv'),
-                        'action' => $action,
-                        'results' => $vote_results,
-                        'user_votes' => $user_votes, // Return array of user's votes
-                        'multiple_votes_enabled' => true
-                    ));
-                } else {
-                    wp_send_json_error(__('Failed to remove vote', 'goalv'));
-                }
-
             } else {
-                // Cast new vote for this option
-                $result = $this->cast_new_vote($match_id, $option_id, $vote_location);
-                $action = 'added';
-
-                if ($result) {
-                    // Clear vote cache
-                    $this->clear_vote_cache($match_id);
-
-                    // Get updated user votes
-                    $user_votes = $this->get_user_votes($match_id, $vote_location);
-
-                    // Get updated results
-                    $vote_results = $this->calculate_vote_percentages($match_id, $vote_location);
-
-                    wp_send_json_success(array(
-                        'message' => __('Vote added successfully', 'goalv'),
-                        'action' => $action,
-                        'results' => $vote_results,
-                        'user_votes' => $user_votes, // Return array of user's votes
-                        'multiple_votes_enabled' => true
-                    ));
-                } else {
-                    wp_send_json_error(__('Failed to cast vote', 'goalv'));
-                }
+                // User is changing their vote within the same category - update vote
+                $result = $this->update_vote($existing_category_vote->id, $option_id, $existing_category_vote->option_id);
+                $action = 'changed';
             }
-
         } else {
-            // SINGLE VOTE MODE: Original behavior - user can only vote for one option
+            // User hasn't voted in this category yet - cast new vote
+            $result = $this->cast_new_vote($match_id, $option_id, $vote_location);
+            $action = 'added';
+        }
 
-            $existing_vote = $this->get_existing_vote($match_id, $vote_location);
+        if ($result) {
+            // Clear vote cache
+            $this->clear_vote_cache($match_id);
 
-            if ($existing_vote) {
-                // User has already voted for some option in this match
+            // Get updated user votes by category
+            $user_votes_by_category = $this->get_user_votes_by_category($match_id, $vote_location);
 
-                if ($existing_vote->option_id == $option_id) {
-                    // User is clicking the same option they already voted for
-                    // Check if vote changes are allowed - if not, treat as toggle off
-                    $allow_change = $this->can_change_vote($vote_location);
+            // Get updated results
+            $vote_results = $this->calculate_vote_percentages($match_id, $vote_location);
 
-                    if (!$allow_change) {
-                        // Remove the vote (toggle off behavior)
-                        $result = $this->remove_vote($existing_vote->id, $existing_vote->option_id);
-                        $action = 'removed';
-                        $user_votes = array(); // No votes after removal
-                    } else {
-                        // Vote changes allowed but user clicked same option - toggle off
-                        $result = $this->remove_vote($existing_vote->id, $existing_vote->option_id);
-                        $action = 'removed';
-                        $user_votes = array(); // No votes after removal
-                    }
-                } else {
-                    // User is changing their vote to a different option
-                    $allow_change = $this->can_change_vote($vote_location);
-                    if (!$allow_change) {
-                        wp_send_json_error(__('Vote changes not allowed', 'goalv'));
-                    }
-
-                    // Update existing vote to new option
-                    $result = $this->update_vote($existing_vote->id, $option_id, $existing_vote->option_id);
-                    $action = 'changed';
-                    $user_votes = array($option_id); // Single new vote
-                }
-
-            } else {
-                // User hasn't voted yet - cast new vote
-                $result = $this->cast_new_vote($match_id, $option_id, $vote_location);
-                $action = 'added';
-                $user_votes = array($option_id); // Single new vote
+            $message = '';
+            switch ($action) {
+                case 'added':
+                    $message = __('Vote recorded successfully', 'goalv');
+                    break;
+                case 'changed':
+                    $message = __('Vote updated successfully', 'goalv');
+                    break;
+                case 'removed':
+                    $message = __('Vote removed successfully', 'goalv');
+                    break;
             }
 
-            if ($result) {
-                // Clear vote cache
-                $this->clear_vote_cache($match_id);
+            wp_send_json_success(array(
+                'message' => $message,
+                'action' => $action,
+                'category' => $option_category,
+                'results' => $vote_results,
+                'user_votes_by_category' => $user_votes_by_category,
+                'one_vote_per_category' => true
+            ));
+        } else {
+            wp_send_json_error(__('Failed to process vote', 'goalv'));
+        }
+    }
 
-                // Get updated results
-                $vote_results = $this->calculate_vote_percentages($match_id, $vote_location);
+    /**
+     * Get existing vote in a specific category for one-vote-per-category system
+     * @param int $match_id - Match identifier
+     * @param string $category - Vote option category 
+     * @param string $vote_location - Voting context
+     * @return object|null - Existing vote record or null
+     */
+    private function get_existing_vote_in_category($match_id, $category, $vote_location)
+    {
+        global $wpdb;
 
-                $message = '';
-                switch ($action) {
-                    case 'added':
-                        $message = __('Vote recorded successfully', 'goalv');
-                        break;
-                    case 'changed':
-                        $message = __('Vote updated successfully', 'goalv');
-                        break;
-                    case 'removed':
-                        $message = __('Vote removed successfully', 'goalv');
-                        break;
-                }
+        $votes_table = $wpdb->prefix . 'goalv_votes';
+        $options_table = $wpdb->prefix . 'goalv_vote_options';
 
-                wp_send_json_success(array(
-                    'message' => $message,
-                    'action' => $action,
-                    'results' => $vote_results,
-                    'user_votes' => $user_votes, // Return array for consistency
-                    'multiple_votes_enabled' => false
-                ));
-            } else {
-                wp_send_json_error(__('Failed to process vote', 'goalv'));
-            }
+        if (is_user_logged_in()) {
+            $user_id = get_current_user_id();
+            return $wpdb->get_row($wpdb->prepare(
+                "SELECT v.* 
+             FROM $votes_table v
+             JOIN $options_table vo ON v.option_id = vo.id  
+             WHERE v.match_id = %d AND vo.category = %s AND v.user_id = %d AND v.vote_location = %s",
+                $match_id,
+                $category,
+                $user_id,
+                $vote_location
+            ));
+        } else {
+            $browser_id = $this->get_browser_id();
+            $user_ip = $this->get_user_ip();
+            return $wpdb->get_row($wpdb->prepare(
+                "SELECT v.* 
+             FROM $votes_table v
+             JOIN $options_table vo ON v.option_id = vo.id
+             WHERE v.match_id = %d AND vo.category = %s AND v.browser_id = %s AND v.user_ip = %s AND v.vote_location = %s AND v.user_id IS NULL",
+                $match_id,
+                $category,
+                $browser_id,
+                $user_ip,
+                $vote_location
+            ));
         }
     }
 
@@ -513,6 +476,58 @@ class GoalV_Voting
 
         $existing_vote = $this->get_existing_vote($match_id, $vote_location);
         return $existing_vote ? $existing_vote->option_id : null;
+    }
+
+    /**
+     * Get user's votes organized by category for one-vote-per-category system
+     * @param int $match_id - Match identifier  
+     * @param string $vote_location - Voting location (homepage/details)
+     * @return array - Array with category as key, option_id as value
+     */
+    public function get_user_votes_by_category($match_id, $vote_location)
+    {
+        global $wpdb;
+
+        $votes_table = $wpdb->prefix . 'goalv_votes';
+        $options_table = $wpdb->prefix . 'goalv_vote_options';
+
+        if ($vote_location === 'table') {
+            $vote_location = 'homepage';
+        }
+
+        if (is_user_logged_in()) {
+            $user_id = get_current_user_id();
+            $results = $wpdb->get_results($wpdb->prepare(
+                "SELECT v.option_id, vo.category 
+             FROM $votes_table v
+             JOIN $options_table vo ON v.option_id = vo.id
+             WHERE v.match_id = %d AND v.user_id = %d AND v.vote_location = %s",
+                $match_id,
+                $user_id,
+                $vote_location
+            ));
+        } else {
+            $browser_id = $this->get_browser_id();
+            $user_ip = $this->get_user_ip();
+            $results = $wpdb->get_results($wpdb->prepare(
+                "SELECT v.option_id, vo.category 
+             FROM $votes_table v
+             JOIN $options_table vo ON v.option_id = vo.id
+             WHERE v.match_id = %d AND v.browser_id = %s AND v.user_ip = %s AND v.vote_location = %s AND v.user_id IS NULL",
+                $match_id,
+                $browser_id,
+                $user_ip,
+                $vote_location
+            ));
+        }
+
+        // Convert to category => option_id array
+        $votes_by_category = array();
+        foreach ($results as $result) {
+            $votes_by_category[$result->category] = intval($result->option_id);
+        }
+
+        return $votes_by_category;
     }
 
     /**

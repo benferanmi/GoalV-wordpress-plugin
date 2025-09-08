@@ -12,21 +12,6 @@ get_header();
 $frontend = new GoalV_Frontend();
 $match = $frontend->get_single_match_data(get_the_ID());
 
-// //comment out start 
-// echo '<pre style="background: #f9f9f9; padding: 10px; margin: 10px 0;">';
-// echo 'Debug Match Data:' . "\n";
-// echo 'Vote Options: ' . (isset($match->vote_options) ? count($match->vote_options) : 'NONE') . "\n";
-// echo 'Vote Options Grouped: ' . (isset($match->vote_options_grouped) ? 'YES' : 'NO') . "\n";
-// if (isset($match->vote_options)) {
-//     echo 'First 3 Options:' . "\n";
-//     foreach (array_slice($match->vote_options, 0, 3) as $option) {
-//         echo "- ID: {$option->id}, Text: {$option->option_text}, Category: " . (isset($option->category) ? $option->category : 'NULL') . "\n";
-//     }
-// }
-// echo '</pre>';
-
-// //end
-
 if (!$match) {
     echo '<div class="goalv-error">' . __('Match not found.', 'goalv') . '</div>';
     get_footer();

@@ -1,229 +1,307 @@
 /**
- * GoalV Football Predictions - Frontend JavaScript (Function Signatures Only)
- * Handles voting functionality for homepage and single match pages
+ * GoalV Football Predictions - Frontend JavaScript Function Skeleton
+ * All functions with their purpose but without implementation
  */
 
 (function ($) {
     'use strict';
 
-    // Frontend voting system
     const GoalVFrontend = {
         // State management properties
         votingInProgress: new Set(),
-        userVotes: new Map(), // Stores arrays of vote IDs for multiple votes
+        userVotes: new Map(),
         updateThrottle: null,
 
         /**
-         * Initialize the frontend voting system
+         * Initialize the entire frontend system
+         * Sets up all components, binds events, and starts periodic updates
          */
         init: function () {
-            // Main initialization function
+            // Implementation removed
         },
 
         /**
-         * Check if GoalV AJAX object is properly loaded
+         * Check if the system is properly initialized with required dependencies
+         * @returns {boolean} - Whether goalv_ajax is available
          */
         isInitialized: function () {
-            // Validation function for initialization
+            // Implementation removed
         },
 
         /**
-         * Bind all event handlers for voting and interactions
+         * Bind all event listeners for voting buttons and window events
+         * Sets up click handlers and focus events
          */
         bindEvents: function () {
-            // Event binding function
+            // Implementation removed
         },
 
         /**
          * Handle vote button clicks - supports multiple votes
+         * Validates data, checks login requirements, and prevents double voting
+         * @param {Event} e - Click event object
          */
         handleVote: function (e) {
-            // Vote click handler with validation
+            // Implementation removed
         },
 
         /**
-         * Submit vote via AJAX
+         * Submit vote data to the server via AJAX
+         * Manages voting state and handles browser ID for guests
+         * @param {jQuery} $btn - Vote button element
+         * @param {string} matchId - Match identifier
+         * @param {string} optionId - Vote option identifier
+         * @param {string} location - Voting location (homepage/details)
          */
         submitVote: function ($btn, matchId, optionId, location) {
-            // AJAX vote submission with loading states
+            // Implementation removed
         },
 
         /**
-         * Process successful vote response from server
+         * Handle successful vote response from server
+         * Updates UI, stores votes, and shows success messages
+         * @param {Object} response - Server response object
+         * @param {jQuery} $btn - Vote button element
+         * @param {string} matchId - Match identifier
+         * @param {string} location - Voting location
+         * @param {string} optionId - Vote option identifier
          */
         handleVoteResponse: function (response, $btn, matchId, location, optionId) {
-            // Success response handler
+            // Implementation removed
         },
 
         /**
          * Handle vote submission errors
+         * Shows error messages to users
+         * @param {jQuery} $btn - Vote button element
+         * @param {string} matchId - Match identifier
+         * @param {string} location - Voting location
          */
         handleVoteError: function ($btn, matchId, location) {
-            // Error response handler
+            // Implementation removed
         },
 
         /**
-         * Update UI with new vote results - supports multiple selections
+         * Update vote UI with new results - supports multiple vote selections
+         * Updates percentages, counts, and selection states
+         * @param {string} matchId - Match identifier
+         * @param {string} location - Voting location
+         * @param {Array} results - Vote results data
+         * @param {Array} selectedOptionIds - Currently selected option IDs
          */
         updateVoteUI: function (matchId, location, results, selectedOptionIds) {
-            // Main UI update function for vote states
+            // Implementation removed
         },
 
         /**
-         * Update voting UI for homepage display
+         * Update voting interface for homepage/grid view
+         * Updates buttons, percentages, and selection states
+         * @param {jQuery} $container - Container element
+         * @param {Array} results - Vote results data
+         * @param {Array} selectedOptionIds - Selected option IDs
          */
         updateHomepageVoting: function ($container, results, selectedOptionIds) {
-            // Homepage-specific UI updates
+            // Implementation removed
         },
 
         /**
-         * Update voting UI for detailed match pages
+         * Update voting interface for detailed single match view
+         * Updates detailed voting options and results summary
+         * @param {jQuery} $container - Container element
+         * @param {Array} results - Vote results data
+         * @param {Array} selectedOptionIds - Selected option IDs
          */
         updateDetailedVoting: function ($container, results, selectedOptionIds) {
-            // Detailed page UI updates with indicators
+            // Implementation removed
         },
 
         /**
-         * Show indicator for multiple vote selections
+         * Show indicator for multiple votes selected
+         * Displays badge showing number of votes selected
+         * @param {jQuery} $container - Container element
+         * @param {number} voteCount - Number of votes selected
          */
         showMultipleVotesIndicator: function ($container, voteCount) {
-            // Multiple votes badge display
+            // Implementation removed
         },
 
         /**
          * Hide multiple votes indicator
+         * @param {jQuery} $container - Container element
          */
         hideMultipleVotesIndicator: function ($container) {
-            // Remove multiple votes indicators
+            // Implementation removed
         },
 
         /**
-         * Update results summary grid on detailed pages
+         * Update results summary display
+         * Updates percentages, counts, and progress bars
+         * @param {jQuery} $wrapper - Wrapper element
+         * @param {Array} results - Vote results data
          */
         updateResultsSummary: function ($wrapper, results) {
-            // Results grid updates with percentages and counts
+            // Implementation removed
         },
 
         /**
          * Initialize browser ID for guest user tracking
+         * Creates unique identifier for non-logged-in users
          */
         initBrowserId: function () {
-            // Guest user identification setup
+            // Implementation removed
         },
 
         /**
          * Generate unique browser ID for guest users
+         * Creates and stores browser identifier in localStorage
+         * @returns {string} - Generated browser ID
          */
         generateBrowserId: function () {
-            // Browser ID generation with localStorage
+            // Implementation removed
         },
 
         /**
-         * Retrieve stored votes for guest users - supports arrays
+         * Get stored votes for a specific match and location
+         * Retrieves vote data from localStorage for guests
+         * @param {string} matchId - Match identifier
+         * @param {string} location - Voting location
+         * @returns {Array} - Array of stored vote option IDs
          */
         getStoredVotes: function (matchId, location) {
-            // LocalStorage vote retrieval for guests
+            // Implementation removed
         },
 
         /**
-         * Store vote selections for guest users
+         * Store votes in localStorage for guest users
+         * Saves multiple vote selections
+         * @param {string} matchId - Match identifier
+         * @param {string} location - Voting location
+         * @param {Array} optionIds - Array of option IDs to store
          */
         storeVotes: function (matchId, location, optionIds) {
-            // LocalStorage vote persistence
+            // Implementation removed
         },
 
         /**
          * Check if multiple votes are enabled in settings
+         * @returns {boolean} - Whether multiple votes are allowed
          */
         isMultipleVotesEnabled: function () {
-            // Settings validation for multiple vote feature
+            // Implementation removed
         },
 
         /**
-         * Legacy support - get single stored vote
+         * Legacy function - get single stored vote
+         * For backward compatibility with single vote system
+         * @param {string} matchId - Match identifier
+         * @param {string} location - Voting location
+         * @returns {string|null} - Single vote option ID or null
          */
         getStoredVote: function (matchId, location) {
-            // Backward compatibility for single vote retrieval
+            // Implementation removed
         },
 
         /**
-         * Legacy support - store single vote
+         * Legacy function - store single vote
+         * For backward compatibility with single vote system
+         * @param {string} matchId - Match identifier
+         * @param {string} location - Voting location
+         * @param {string} optionId - Option ID to store
          */
         storeVote: function (matchId, location, optionId) {
-            // Backward compatibility for single vote storage
+            // Implementation removed
         },
 
         /**
-         * Initialize stored votes from localStorage on page load
+         * Initialize UI with stored votes for guest users
+         * Applies stored vote selections to vote buttons
          */
         initStoredVotes: function () {
-            // Restore guest user vote states from storage
+            // Implementation removed
         },
 
         /**
-         * Start periodic vote result updates
+         * Start periodic updates for real-time vote results
+         * Sets up interval for automatic result updates
          */
         startPeriodicUpdates: function () {
-            // Background polling for live vote updates
+            // Implementation removed
         },
 
         /**
-         * Fetch and update vote results without changing selections
+         * Update vote results for all visible matches
+         * Fetches latest results without affecting user selections
          */
         updateVoteResults: function () {
-            // Periodic results refresh via AJAX
+            // Implementation removed
         },
 
         /**
-         * Update only vote counts and percentages, preserve selections
+         * Update only the vote results (percentages and counts)
+         * Does not change user selection states
+         * @param {jQuery} $container - Container element
+         * @param {Array} results - Vote results data
+         * @param {string} location - Voting location
          */
         updateVoteResultsOnly: function ($container, results, location) {
-            // Results-only UI updates (no selection changes)
+            // Implementation removed
         },
 
         /**
-         * Set button loading state during vote submission
+         * Set loading state for vote buttons
+         * Adds/removes loading class and disables buttons
+         * @param {jQuery} $btn - Vote button element
+         * @param {boolean} isLoading - Whether button is in loading state
          */
         setVotingState: function ($btn, isLoading) {
-            // Button state management for loading feedback
+            // Implementation removed
         },
 
         /**
-         * Display status messages to users
+         * Show status messages to users
+         * Displays success/error messages with auto-hide
+         * @param {jQuery} $container - Container element
+         * @param {string} message - Message text
+         * @param {string} type - Message type (success/error)
+         * @param {number} duration - Auto-hide duration in milliseconds
          */
         showMessage: function ($container, message, type, duration = 5000) {
-            // User feedback message system
+            // Implementation removed
         },
 
         /**
-         * Handle responsive design changes
+         * Handle responsive design adjustments
+         * Adds mobile class based on screen size
          */
         handleResponsive: function () {
-            // Mobile/desktop responsive adjustments
+            // Implementation removed
         },
 
         /**
-         * Add CSS animations and transitions
+         * Add animations to match cards and buttons
+         * Creates staggered fade-in animations and hover effects
          */
         addAnimations: function () {
-            // UI animation setup for cards and buttons
+            // Implementation removed
         },
 
         /**
-         * Handle finished match states (disable voting)
+         * Handle vote states for finished matches
+         * Disables voting buttons for completed matches
          */
         handleVoteStates: function () {
-            // Disable voting on completed matches
+            // Implementation removed
         },
 
         /**
-         * Initialize keyboard navigation support
+         * Initialize keyboard navigation for accessibility
+         * Adds Enter/Space key support for vote buttons
          */
         initKeyboardNav: function () {
-            // Accessibility keyboard controls
+            // Implementation removed
         },
 
-        // Infinite scroll functionality object
+        // Infinite scroll configuration object
         infiniteScroll: {
             isLoading: false,
             hasMoreMatches: true,
@@ -233,88 +311,106 @@
         },
 
         /**
-         * Initialize infinite scroll for match lists
+         * Initialize infinite scroll functionality
+         * Sets up scroll container and loading indicators
          */
         initInfiniteScroll: function () {
-            // Setup infinite scroll container and events
+            // Implementation removed
         },
 
         /**
-         * Bind scroll event handlers with throttling
+         * Bind scroll events with throttling
+         * Sets up optimized scroll event listeners
          */
         bindScrollEvents: function () {
-            // Scroll position monitoring with debouncing
+            // Implementation removed
         },
 
         /**
-         * Check if user has scrolled near bottom
+         * Check if user has scrolled near bottom of page
+         * Triggers loading of more matches when threshold reached
          */
         checkScrollPosition: function () {
-            // Scroll position calculation for loading trigger
+            // Implementation removed
         },
 
         /**
-         * Load additional matches via AJAX
+         * Load more matches via AJAX
+         * Fetches next page of match data
          */
         loadMoreMatches: function () {
-            // Infinite scroll AJAX loading
+            // Implementation removed
         },
 
         /**
-         * Append newly loaded matches to DOM
+         * Append newly loaded matches to the container
+         * Adds new match HTML with animation classes
+         * @param {string} matchesHtml - HTML string of new matches
          */
         appendNewMatches: function (matchesHtml) {
-            // DOM manipulation for new match insertion
+            // Implementation removed
         },
 
         /**
-         * Add loading spinner to page
+         * Add loading indicator to the page
+         * Creates loading spinner element
          */
         addLoadingIndicator: function () {
-            // Loading indicator creation
+            // Implementation removed
         },
 
         /**
-         * Show loading spinner
+         * Show loading indicator during data fetch
          */
         showLoadingIndicator: function () {
-            // Display loading state
+            // Implementation removed
         },
 
         /**
-         * Hide loading spinner
+         * Hide loading indicator after data loaded
          */
         hideLoadingIndicator: function () {
-            // Remove loading state
+            // Implementation removed
         },
 
         /**
-         * Show "no more matches" message
+         * Show end message when no more matches available
+         * Displays "no more matches" message
          */
         showEndMessage: function () {
-            // End-of-list indicator
+            // Implementation removed
         },
 
         /**
          * Validate vote data before submission
+         * Checks that required fields are present and valid
+         * @param {string} matchId - Match identifier
+         * @param {string} optionId - Vote option identifier
+         * @param {string} location - Voting location
+         * @returns {boolean} - Whether data is valid
          */
         validateVoteData: function (matchId, optionId, location) {
-            // Input validation for vote parameters
+            // Implementation removed
         },
 
         /**
          * Debounce utility function
+         * Limits function execution frequency
+         * @param {Function} func - Function to debounce
+         * @param {number} wait - Wait time in milliseconds
+         * @returns {Function} - Debounced function
          */
         debounce: function (func, wait) {
-            // Function execution throttling utility
+            // Implementation removed
         }
     };
 
     /**
      * Initialize when DOM is ready
+     * Entry point for the entire system
      */
     $(document).ready(function () {
-        // DOM ready initialization with timeout
+        // Implementation removed
     });
 
     // Expose for debugging

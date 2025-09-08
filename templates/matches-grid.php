@@ -101,7 +101,7 @@ if (!empty($matches)) {
                 <div class="goalv-grid-voting goalv-voting-section" data-match-id="<?php echo esc_attr($match->ID); ?>">
                     <?php foreach ($match->vote_options as $option): ?>
                         <?php
-                        $is_selected = ($match->user_vote == $option->id);
+                        $is_selected = in_array($option->id, $match->user_votes);
                         $result = isset($match->vote_results[$option->id]) ? $match->vote_results[$option->id] : array('percentage' => 0, 'votes_count' => 0);
                         $percentage = $result['percentage'];
                         $vote_count = $result['votes_count'];

@@ -316,35 +316,48 @@
         },
 
         /**
-         * Update homepage voting UI (card and grid templates)
+         * Update homepage voting UI (card and grid templates) - FIXED for category-based voting
          */
-        updateHomepageVoting: function ($container, results, selectedOptionId) {
+        updateHomepageVoting: function ($container, results, selectedOptionIds) {
+            // Ensure selectedOptionIds is an array and convert to integers
+            if (!Array.isArray(selectedOptionIds)) {
+                selectedOptionIds = selectedOptionIds ? [parseInt(selectedOptionIds)] : [];
+            }
+            selectedOptionIds = selectedOptionIds.map(id => parseInt(id));
+
+            console.log('UpdateHomepageVoting - Selected IDs:', selectedOptionIds); // Debug
+
             // Update buttons and percentages
-            $container.find('.goalv-vote-btn, .goalv-grid-vote-btn').each(function () {
+            $container.find('.goalv-vote-btn, .goalv-grid-vote-btn, .goalv-vote-btn-inline').each(function () {
                 const $btn = $(this);
-                const optionId = $btn.data('option-id');
-                const result = results.find(r => r.option_id == optionId);
+                const optionId = parseInt($btn.data('option-id'));
+                const result = results.find(r => parseInt(r.option_id) === optionId);
 
                 if (result) {
                     // Update percentage
-                    $btn.find('.goalv-percentage, .goalv-grid-percentage').text(result.percentage + '%');
+                    $btn.find('.goalv-percentage, .goalv-grid-percentage, .goalv-percentage-inline').text(result.percentage + '%');
 
                     // Update vote count - check different possible selectors
                     const $voteCount = $btn.find('.goalv-vote-count, .goalv-grid-vote-count, .goalv-inline-vote-count');
                     if ($voteCount.length) {
-                        $voteCount.text(`(${result.votes_count} votes)`);
-                    } else {
-                        // For table template, might be different structure
-                        $btn.find('.goalv-inline-vote-stats .goalv-inline-vote-count').text(`(${result.votes_count})`);
+                        $voteCount.text(`(${result.votes_count})`);
                     }
 
-                    // Update selection state
-                    if (optionId == selectedOptionId) {
+                    // Update selection state - FIXED for category-based voting
+                    if (selectedOptionIds.includes(optionId)) {
                         $btn.addClass('selected').attr('data-selected', 'true');
-                        $btn.siblings().removeClass('selected').removeAttr('data-selected');
+                    } else {
+                        $btn.removeClass('selected').removeAttr('data-selected');
                     }
                 }
             });
+
+            // Store votes for guest users
+            if (!goalv_ajax.is_user_logged_in) {
+                const matchId = $container.data('match-id');
+                const location = 'homepage';
+                this.storeVotes(matchId, location, selectedOptionIds);
+            }
         },
 
         /**

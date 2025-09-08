@@ -164,6 +164,7 @@ class GoalV_Frontend
                 $match->user_votes = $voting->get_user_votes($match->ID, 'homepage');
             } else {
                 $match->user_vote = $voting->get_user_vote($match->ID, 'homepage');
+
             }
         }
 
@@ -377,7 +378,8 @@ class GoalV_Frontend
                 // Get vote options and user's current vote
                 $voting = new GoalV_Voting();
                 $match->vote_options = $voting->get_vote_options($match->ID, 'basic');
-                $match->user_vote = $voting->get_user_vote($match->ID, 'homepage');
+                $match->user_votes = $voting->get_user_votes($match->ID, 'homepage');
+                $match->user_vote = $voting->get_user_vote($match->ID, 'homepage'); // Keep for backward compatibility
                 $match->vote_results = $this->get_vote_percentages($match->ID, 'homepage');
             }
         }
@@ -526,7 +528,8 @@ class GoalV_Frontend
 
             $voting = new GoalV_Voting();
             $match->vote_options = $voting->get_vote_options($match->ID, 'basic');
-            $match->user_vote = $voting->get_user_vote($match->ID, 'homepage');
+            $match->user_votes = $voting->get_user_votes($match->ID, 'homepage');
+            $match->user_vote = $voting->get_user_vote($match->ID, 'homepage'); // Keep for backward compatibility
             $match->vote_results = $this->get_vote_percentages($match->ID, 'homepage');
         }
 
@@ -586,7 +589,7 @@ class GoalV_Frontend
                     <div class="goalv-voting-inline goalv-voting-section" data-match-id="<?php echo esc_attr($match->ID); ?>">
                         <?php foreach ($match->vote_options as $option): ?>
                             <?php
-                            $is_selected = ($match->user_vote == $option->id);
+                            $is_selected = in_array($option->id, $match->user_votes);
                             $result = isset($match->vote_results[$option->id]) ? $match->vote_results[$option->id] : array('percentage' => 0, 'votes_count' => 0);
                             ?>
                             <button type="button"
@@ -755,7 +758,7 @@ class GoalV_Frontend
     }
 
     /**
-     * Get single match data for detail page
+     * Get single match data for detail page - UPDATED for one-vote-per-category
      */
     public function get_single_match_data($match_id)
     {
@@ -780,18 +783,18 @@ class GoalV_Frontend
         // Initialize voting class
         $voting = new GoalV_Voting();
 
-        // UPDATED: Get detailed vote options including custom ones
+        // Get detailed vote options including custom ones
         $match_data->vote_options = $voting->get_vote_options($match->ID, 'detailed');
 
-        // NEW: Get grouped vote options for the new template structure
+        // Get grouped vote options for the new template structure
         $match_data->vote_options_grouped = $voting->get_vote_options_grouped($match->ID, 'detailed');
 
-        // Support for multiple votes
-        if (get_option('goalv_allow_multiple_votes', 'no') === 'yes') {
-            $match_data->user_votes = $voting->get_user_votes($match->ID, 'details');
-        } else {
-            $match_data->user_vote = $voting->get_user_vote($match->ID, 'details');
-        }
+        // CHANGED: Always use one-vote-per-category system
+        $match_data->user_votes_by_category = $voting->get_user_votes_by_category($match->ID, 'details');
+
+        // Keep legacy support for backward compatibility
+        $match_data->user_votes = $voting->get_user_votes($match->ID, 'details');
+        $match_data->user_vote = $voting->get_user_vote($match->ID, 'details'); // Legacy single vote
 
         $match_data->vote_results = $this->get_vote_percentages($match->ID, 'details');
 

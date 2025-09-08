@@ -1,6 +1,7 @@
 <?php
 /**
- * Voting System Handler - Structure Only
+ * GoalV Voting System Handler - Function Skeleton
+ * All methods with their purpose but without implementation
  */
 
 if (!defined('ABSPATH')) {
@@ -9,186 +10,320 @@ if (!defined('ABSPATH')) {
 
 class GoalV_Voting
 {
+    /**
+     * Constructor - Initialize voting system
+     * Sets up AJAX handlers for vote casting and result retrieval
+     */
     public function __construct()
     {
-        // Constructor implementation
+        // Implementation removed
     }
 
     /**
-     * Handle vote submission - UPDATED WITH MULTIPLE VOTES SUPPORT
+     * Handle vote submission with multiple votes support
+     * Main AJAX handler for processing vote casting, changes, and removal
+     * Supports both single vote and multiple vote modes
      */
     public function handle_vote()
     {
-        // Function implementation
+        // Implementation removed
     }
 
     /**
-     * Get existing vote for specific option (for multiple votes mode)
+     * Get existing vote for specific option (multiple votes mode)
+     * Checks if user already voted for a particular option
+     * @param int $match_id - Match identifier
+     * @param int $option_id - Vote option identifier
+     * @param string $vote_location - Voting context (homepage/details)
+     * @return object|null - Existing vote record or null
      */
     private function get_existing_option_vote($match_id, $option_id, $vote_location)
     {
-        // Function implementation
+        // Implementation removed
     }
 
     /**
-     * Remove a vote (for toggle functionality)
+     * Remove a vote (toggle functionality)
+     * Deletes vote record and decrements option count
+     * @param int $vote_id - Vote record identifier
+     * @param int $option_id - Vote option identifier
+     * @return bool - Success status
      */
     private function remove_vote($vote_id, $option_id)
     {
-        // Function implementation
+        // Implementation removed
     }
 
     /**
-     * Get user's current votes for a match (modified for multiple votes)
+     * Get user's current votes for a match (multiple votes support)
+     * Retrieves all votes cast by user for a specific match
+     * @param int $match_id - Match identifier
+     * @param string $vote_location - Voting context
+     * @return array - Array of voted option IDs
      */
     public function get_user_votes($match_id, $vote_location)
     {
-        // Function implementation
+        // Implementation removed
     }
 
     /**
-     * Get vote results
+     * Get vote results via AJAX
+     * Handles AJAX requests for current vote statistics
      */
     public function get_vote_results()
     {
-        // Function implementation
+        // Implementation removed
     }
 
     /**
-     * Get vote option
+     * Get vote option details by ID
+     * Retrieves specific vote option information
+     * @param int $option_id - Vote option identifier
+     * @return object|null - Option details or null
      */
     private function get_vote_option($option_id, $match_id)
     {
-        // Function implementation
+        // Implementation removed
     }
 
     /**
-     * Get existing vote - MODIFIED for better guest user handling
+     * Get existing vote for any option (single vote mode)
+     * Finds user's current vote for a match (any option)
+     * @param int $match_id - Match identifier
+     * @param string $vote_location - Voting context
+     * @return object|null - Existing vote record or null
      */
     private function get_existing_vote($match_id, $vote_location)
     {
-        // Function implementation
+        // Implementation removed
     }
 
     /**
      * Check if vote changes are allowed
+     * Validates vote modification permissions based on settings
+     * @param string $vote_location - Voting context
+     * @return bool - Whether changes are permitted
      */
     private function can_change_vote($vote_location)
     {
-        // Function implementation
+        // Implementation removed
     }
 
     /**
-     * Cast new vote
+     * Cast new vote for an option
+     * Creates new vote record and increments option count
+     * @param int $match_id - Match identifier
+     * @param int $option_id - Vote option identifier
+     * @param string $vote_location - Voting context
+     * @return bool - Success status
      */
     private function cast_new_vote($match_id, $option_id, $vote_location)
     {
-        // Function implementation
+        // Implementation removed
     }
 
     /**
-     * Update existing vote
+     * Update existing vote to different option
+     * Changes vote from one option to another
+     * @param int $vote_id - Vote record identifier
+     * @param int $new_option_id - New vote option ID
+     * @param int $old_option_id - Previous vote option ID
+     * @return bool - Success status
      */
     private function update_vote($vote_id, $new_option_id, $old_option_id)
     {
-        // Function implementation
+        // Implementation removed
     }
 
     /**
-     * Calculate vote percentages
+     * Calculate vote percentages for match options
+     * Computes voting statistics and percentages for display
+     * @param int $match_id - Match identifier
+     * @param string $vote_location - Voting context
+     * @return array - Vote results with percentages and counts
      */
     private function calculate_vote_percentages($match_id, $vote_location)
     {
-        // Function implementation
+        // Implementation removed
     }
 
     /**
-     * Get vote option details - NEW METHOD
+     * Get vote option details by ID
+     * Retrieves complete option information
+     * @param int $option_id - Vote option identifier
+     * @return object|null - Option details or null
      */
     public function get_vote_option_details($option_id)
     {
-        // Function implementation
+        // Implementation removed
     }
 
     /**
-     * Get user's current vote for a match - MODIFIED
+     * Get user's current single vote for a match
+     * Returns single vote option ID (for backward compatibility)
+     * @param int $match_id - Match identifier
+     * @param string $vote_location - Voting context
+     * @return int|null - Vote option ID or null
      */
     public function get_user_vote($match_id, $vote_location)
     {
-        // Function implementation
+        // Implementation removed
     }
 
     /**
-     * Get custom options count for a match - NEW METHOD
+     * Get custom options count for a match
+     * Counts custom voting options by type
+     * @param int $match_id - Match identifier
+     * @param string|null $option_type - Option type filter (basic/detailed)
+     * @return int - Number of custom options
      */
     public function get_custom_options_count($match_id, $option_type = null)
     {
-        // Function implementation
+        // Implementation removed
     }
 
     /**
-     * Get voting statistics for admin - NEW METHOD
+     * Get comprehensive voting statistics for admin
+     * Provides detailed analytics about match voting activity
+     * @param int $match_id - Match identifier
+     * @return array - Complete voting statistics
      */
     public function get_voting_statistics($match_id)
     {
-        // Function implementation
+        // Implementation removed
     }
 
     /**
-     * Validate custom option - NEW METHOD
+     * Validate custom voting option input
+     * Checks custom option data for errors and duplicates
+     * @param string $option_text - Option text content
+     * @param string $option_type - Option type (basic/detailed)
+     * @param int $match_id - Match identifier
+     * @return array - Array of validation errors
      */
     public function validate_custom_option($option_text, $option_type, $match_id)
     {
-        // Function implementation
+        // Implementation removed
     }
 
     /**
-     * Delete custom option and its votes - NEW METHOD
+     * Delete custom option and associated votes
+     * Removes custom voting option and all related vote records
+     * @param int $option_id - Custom option identifier
+     * @return bool - Success status
      */
     public function delete_custom_option($option_id)
     {
-        // Function implementation
+        // Implementation removed
     }
 
     /**
-     * Get browser ID - ENHANCED
+     * Get browser ID for guest user tracking
+     * Generates or retrieves unique browser identifier
+     * @return string - Browser identification string
      */
     private function get_browser_id()
     {
-        // Function implementation
+        // Implementation removed
     }
 
     /**
-     * Get user IP
+     * Get user's IP address
+     * Extracts client IP with proxy support
+     * @return string - User's IP address
      */
     private function get_user_ip()
     {
-        // Function implementation
+        // Implementation removed
     }
 
     /**
-     * Get vote options for a match - UPDATED to include custom options with proper ordering
+     * Get vote options grouped by category
+     * Organizes voting options into logical categories
+     * @param int $match_id - Match identifier
+     * @param string $option_type - Option type (basic/detailed)
+     * @return array - Options grouped by category with labels
+     */
+    public function get_vote_options_grouped($match_id, $option_type = 'detailed')
+    {
+        // Implementation removed
+    }
+
+    /**
+     * Group options by category with proper labels
+     * Organizes options into categories with localized labels
+     * @param array $options - Array of vote options
+     * @return array - Categorized and labeled option groups
+     */
+    private function group_options_by_category($options)
+    {
+        // Implementation removed
+    }
+
+    /**
+     * Get display order for option categories
+     * Determines sorting order for category display
+     * @param string $category - Category identifier
+     * @return int - Display order number
+     */
+    private function get_category_order($category)
+    {
+        // Implementation removed
+    }
+
+    /**
+     * Get vote options for a match with proper ordering
+     * Retrieves all voting options including custom ones
+     * @param int $match_id - Match identifier
+     * @param string $option_type - Option type (basic/detailed)
+     * @return array - Ordered vote options
      */
     public function get_vote_options($match_id, $option_type = 'basic')
     {
-        // Function implementation
+        // Implementation removed
     }
 
     /**
-     * Get all vote options for a match (both basic and detailed) - NEW METHOD
+     * Get default category for option text
+     * Automatically categorizes options based on content
+     * @param string $option_text - Option text content
+     * @return string - Suggested category identifier
+     */
+    public function get_default_category($option_text)
+    {
+        // Implementation removed
+    }
+
+    /**
+     * Get all vote options for a match (both types)
+     * Retrieves both basic and detailed options
+     * @param int $match_id - Match identifier
+     * @return array - All vote options for the match
      */
     public function get_all_vote_options($match_id)
     {
-        // Function implementation
+        // Implementation removed
     }
 
+    /**
+     * Get vote results with caching support
+     * Retrieves vote results with performance caching
+     * @param int $match_id - Match identifier
+     * @param string $vote_location - Voting context
+     * @return array - Cached or fresh vote results
+     */
     public function get_vote_results_cached($match_id, $vote_location)
     {
-        // Function implementation
+        // Implementation removed
     }
 
+    /**
+     * Clear vote result cache for a match
+     * Invalidates cached vote data when votes change
+     * @param int $match_id - Match identifier
+     */
     public function clear_vote_cache($match_id)
     {
-        // Function implementation
+        // Implementation removed
     }
 }

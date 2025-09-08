@@ -3,8 +3,8 @@
  * Plugin Name: GoalV Football Predictions
  * Plugin URI: https://oluwaferanmi-developer-site.vercel.app/
  * Description: Complete football match prediction system with API integration and dual voting system
- * Version: 7.0.0
- * Changes: Updating the single page to diplay grouped votes.
+ * Version: 7.0.2
+ * Changes: Stricting making it one vote by category.
  * Author: Opafunso Benjamin
  * License: GPL v2 or later
  * Text Domain: https://oluwaferanmi-developer-site.vercel.app/

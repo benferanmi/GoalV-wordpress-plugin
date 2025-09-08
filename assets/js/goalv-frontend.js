@@ -116,32 +116,84 @@
                 });
         },
 
+        /**
+         * Handle vote response - UPDATED for one-vote-per-category system
+         */
         handleVoteResponse: function (response, $btn, matchId, location, optionId) {
             const $container = $btn.closest('.goalv-voting-section, .goalv-grid-voting');
 
             if (response.success) {
-                // Update UI based on response
-                this.updateVoteUI(matchId, location, response.data.results, response.data.user_votes || [optionId]);
+                // NEW: Handle one-vote-per-category system
+                if (response.data.one_vote_per_category) {
+                    this.updateVoteUIByCategory(matchId, location, response.data.results, response.data.user_votes_by_category, response.data.category);
 
-                // Store user votes (now can be multiple)
-                this.userVotes.set(`${matchId}-${location}`, response.data.user_votes || [optionId]);
-                this.storeVotes(matchId, location, response.data.user_votes || [optionId]);
+                    // Store votes by category for guest users
+                    if (!goalv_ajax.is_user_logged_in) {
+                        this.storeVotesByCategory(matchId, location, response.data.user_votes_by_category);
+                    }
+                } else {
+                    // Legacy multiple votes system
+                    this.updateVoteUI(matchId, location, response.data.results, response.data.user_votes || [optionId]);
+                    this.storeVotes(matchId, location, response.data.user_votes || [optionId]);
+                }
 
                 // Show appropriate message
                 let message = response.data.message;
-                if (response.data.action === 'removed') {
-                    message = 'Vote removed successfully';
-                } else if (response.data.action === 'added') {
-                    message = 'Vote added successfully';
-                } else if (response.data.action === 'changed') {
-                    message = 'Vote updated successfully';
-                }
-
                 this.showMessage($container, message, 'success', 2000);
             } else {
                 this.showMessage($container, response.data || 'Vote failed', 'error');
             }
         },
+
+        /**
+ * Store votes by category for guest users
+ */
+        storeVotesByCategory: function (matchId, location, votesByCategory) {
+            if (!goalv_ajax.is_user_logged_in) {
+                const storageKey = `goalv_votes_by_category_${matchId}_${location}`;
+                localStorage.setItem(storageKey, JSON.stringify(votesByCategory));
+            }
+        },
+
+        /**
+         * Get stored votes by category for guest users
+         */
+        getStoredVotesByCategory: function (matchId, location) {
+            if (!goalv_ajax.is_user_logged_in) {
+                const storageKey = `goalv_votes_by_category_${matchId}_${location}`;
+                const stored = localStorage.getItem(storageKey);
+                return stored ? JSON.parse(stored) : {};
+            }
+            return {};
+        },
+
+        /**
+ * Update UI for one-vote-per-category system 
+ */
+        updateVoteUIByCategory: function (matchId, location, results, userVotesByCategory, changedCategory) {
+            const $matchContainer = $(`.goalv-match-card[data-match-id="${matchId}"], .goalv-match-grid-item[data-match-id="${matchId}"], .goalv-detailed-voting[data-match-id="${matchId}"]`);
+
+            // Update results first
+            this.updateVoteResultsOnly($matchContainer, results, location);
+
+            // Clear all selections in the changed category only
+            $matchContainer.find(`.goalv-voting-group[data-category="${changedCategory}"] .goalv-vote-btn`).each(function () {
+                $(this).removeClass('selected').removeAttr('data-selected');
+                $(this).closest('.goalv-vote-option').removeClass('selected');
+            });
+
+            // Set new selections based on user votes by category
+            Object.keys(userVotesByCategory).forEach(category => {
+                const selectedOptionId = userVotesByCategory[category];
+                const $categoryBtn = $matchContainer.find(`.goalv-voting-group[data-category="${category}"] .goalv-vote-btn[data-option-id="${selectedOptionId}"]`);
+
+                if ($categoryBtn.length) {
+                    $categoryBtn.addClass('selected').attr('data-selected', 'true');
+                    $categoryBtn.closest('.goalv-vote-option').addClass('selected');
+                }
+            });
+        },
+
 
         handleVoteError: function ($btn, matchId, location) {
             const $container = $btn.closest('.goalv-voting-section, .goalv-grid-voting');
