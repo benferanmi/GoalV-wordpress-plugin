@@ -1,0 +1,291 @@
+<?php
+/**
+ * GoalV Admin Class Skeleton
+ * Complete function structure with descriptions and parameters
+ */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+class GoalV_Admin
+{
+
+    /**
+     * Constructor - Initialize admin functionality
+     * Sets up all WordPress hooks and actions for admin interface
+     */
+    public function __construct()
+    {
+        // Implementation removed
+    }
+
+    /**
+     * Enqueue admin scripts and styles
+     * Loads JavaScript and CSS files for admin pages only
+     * @param string $hook - Current admin page hook
+     */
+    public function enqueue_admin_scripts($hook)
+    {
+        // Implementation removed
+    }
+
+    /**
+     * Add admin menu pages
+     * Creates main settings page and submenu pages in WordPress admin
+     */
+    public function add_admin_menu()
+    {
+        // Implementation removed
+    }
+
+    /**
+     * Initialize WordPress settings API
+     * Registers all settings fields and sections for the plugin
+     */
+    public function init_settings()
+    {
+        // Implementation removed
+    }
+
+    /**
+     * Render main settings page
+     * Displays the primary settings interface
+     */
+    public function settings_page()
+    {
+        // Implementation removed
+    }
+
+    /**
+     * Render match synchronization page
+     * Displays week selector, sync controls, and current status
+     */
+    public function sync_page()
+    {
+        // Implementation removed
+    }
+
+    /**
+     * API section callback for settings
+     * Displays description text for API settings section
+     */
+    public function api_section_callback()
+    {
+        // Implementation removed
+    }
+
+    /**
+     * Voting section callback for settings
+     * Displays description text for voting settings section
+     */
+    public function voting_section_callback()
+    {
+        // Implementation removed
+    }
+
+    /**
+     * API key field callback
+     * Renders API key input field with description
+     */
+    public function api_key_callback()
+    {
+        // Implementation removed
+    }
+
+    /**
+     * Competition selection field callback
+     * Renders dropdown with available football competitions
+     */
+    public function competition_callback()
+    {
+        // Implementation removed
+    }
+
+    /**
+     * General vote change permission callback
+     * Renders checkbox for allowing vote changes globally
+     */
+    public function allow_vote_change_callback()
+    {
+        // Implementation removed
+    }
+
+    /**
+     * Homepage vote change permission callback
+     * Renders checkbox for allowing vote changes on homepage
+     */
+    public function allow_homepage_vote_change_callback()
+    {
+        // Implementation removed
+    }
+
+    /**
+     * Details page vote change permission callback
+     * Renders checkbox for allowing vote changes on details page
+     */
+    public function allow_details_vote_change_callback()
+    {
+        // Implementation removed
+    }
+
+    /**
+     * AJAX handler for match synchronization
+     * Syncs matches from API for selected week or auto-detects next week
+     */
+    public function ajax_sync_matches()
+    {
+        // Implementation removed
+    }
+
+    /**
+     * AJAX handler for testing API connection
+     * Tests API credentials without syncing data
+     */
+    public function ajax_test_api()
+    {
+        // Implementation removed
+    }
+
+    /**
+     * Debug homepage week selection (development tool)
+     * Displays debug information about week selection logic
+     */
+    public function debug_homepage_weeks()
+    {
+        // Implementation removed
+    }
+
+    /**
+     * AJAX handler for getting homepage week information
+     * Returns current homepage week configuration data
+     */
+    public function ajax_get_homepage_weeks()
+    {
+        // Implementation removed
+    }
+
+    /**
+     * AJAX handler for adding custom voting options
+     * Adds new custom voting option to a specific match
+     */
+    public function ajax_add_custom_option()
+    {
+        // Implementation removed
+    }
+
+    /**
+     * AJAX handler for removing custom voting options
+     * Removes custom voting option and associated votes
+     */
+    public function ajax_remove_custom_option()
+    {
+        // Implementation removed
+    }
+
+    /**
+     * Get homepage weeks display configuration
+     * Calculates which weeks to show on homepage based on settings
+     * @return array - Array with mode, weeks, show_headers, fallback_enabled
+     */
+    public function get_homepage_weeks_info()
+    {
+        // Implementation removed
+    }
+
+    /**
+     * Add meta box for custom voting options
+     * Adds meta box to match edit screen for managing custom options
+     */
+    public function add_custom_voting_meta_box()
+    {
+        // Implementation removed
+    }
+
+    /**
+     * Update last sync time after successful sync
+     * Stores sync timestamp and match count in WordPress options
+     * @param array $result - Sync result data with success, count, week info
+     */
+    public function update_last_sync_time($result)
+    {
+        // Implementation removed
+    }
+
+    /**
+     * Display admin notices for configuration and status
+     * Shows warnings, errors, and informational messages in admin
+     */
+    public function admin_notices()
+    {
+        // Implementation removed
+    }
+
+    /**
+     * Render custom voting options meta box
+     * Displays interface for adding/editing custom voting options
+     * @param WP_Post $post - Current post object (match)
+     */
+    public function render_custom_voting_meta_box($post)
+    {
+        // Implementation removed
+    }
+
+    /**
+     * Save custom voting options when match post is saved
+     * Processes and saves custom voting options from meta box
+     * @param int $post_id - Post ID of the match being saved
+     */
+    public function save_custom_voting_options($post_id)
+    {
+        // Implementation removed
+    }
+
+    /**
+     * AJAX handler for adding new voting category
+     * Creates new category for organizing voting options
+     */
+    public function ajax_add_category()
+    {
+        // Implementation removed
+    }
+
+    /**
+     * AJAX handler for updating existing category
+     * Updates category label and display order
+     */
+    public function ajax_update_category()
+    {
+        // Implementation removed
+    }
+
+    /**
+     * AJAX handler for deleting voting category
+     * Removes category (except 'other' category)
+     */
+    public function ajax_delete_category()
+    {
+        // Implementation removed
+    }
+
+    /**
+     * AJAX handler for reordering categories
+     * Updates display order of categories via drag-and-drop
+     */
+    public function ajax_reorder_categories()
+    {
+        // Implementation removed
+    }
+
+    /**
+     * Process custom options data from meta box form
+     * Validates and saves custom voting options to database
+     * @param int $match_id - Match post ID
+     * @param array $options_data - Array of custom option data from form
+     */
+    private function process_custom_options_data($match_id, $options_data)
+    {
+        // Implementation removed
+    }
+
+}

@@ -761,18 +761,19 @@ class GoalV_Voting
     }
 
     /**
-     * Group options by category with proper labels - NEW METHOD
+     * UPDATED: Group options by category with database labels
      */
     private function group_options_by_category($options)
     {
-        $category_labels = array(
-            'match_result' => __('Match Result', 'goalv'),
-            'match_score' => __('Exact Score', 'goalv'),
-            'goals_threshold' => __('Total Goals', 'goalv'),
-            'both_teams_score' => __('Both Teams to Score', 'goalv'),
-            'first_to_score' => __('First Team to Score', 'goalv'),
-            'other' => __('Other Predictions', 'goalv')
-        );
+        // Get categories from database
+        $categories = $this->get_available_categories();
+        $category_labels = array();
+        $category_orders = array();
+
+        foreach ($categories as $cat) {
+            $category_labels[$cat->category_key] = $cat->category_label;
+            $category_orders[$cat->category_key] = $cat->display_order;
+        }
 
         $grouped = array();
 
@@ -781,9 +782,13 @@ class GoalV_Voting
 
             if (!isset($grouped[$category])) {
                 $grouped[$category] = array(
-                    'label' => isset($category_labels[$category]) ? $category_labels[$category] : ucfirst(str_replace('_', ' ', $category)),
+                    'label' => isset($category_labels[$category])
+                        ? $category_labels[$category]
+                        : ucfirst(str_replace('_', ' ', $category)),
                     'options' => array(),
-                    'order' => $this->get_category_order($category)
+                    'order' => isset($category_orders[$category])
+                        ? $category_orders[$category]
+                        : 999
                 );
             }
 
@@ -798,21 +803,14 @@ class GoalV_Voting
         return $grouped;
     }
 
+
     /**
-     * Get display order for categories - NEW METHOD
+     * UPDATED: Get category order from database
      */
     private function get_category_order($category)
     {
-        $order_map = array(
-            'match_result' => 1,
-            'match_score' => 2,
-            'goals_threshold' => 3,
-            'both_teams_score' => 4,
-            'first_to_score' => 5,
-            'other' => 6
-        );
-
-        return isset($order_map[$category]) ? $order_map[$category] : 99;
+        $cat_obj = $this->get_category_by_key($category);
+        return $cat_obj ? $cat_obj->display_order : 999;
     }
 
 
@@ -846,34 +844,33 @@ class GoalV_Voting
     }
 
     /**
-     * Get default category for an option text - NEW METHOD
+     * UPDATED: Get default category for option text with database fallback
      */
     public function get_default_category($option_text)
     {
         $option_text = strtolower($option_text);
 
-        // Match result patterns
-        if (in_array($option_text, ['home team win', 'draw', 'away team win'])) {
+        // Pattern matching logic (same as before)
+        if (
+            preg_match('/\b(win|wins|victory)\b/', $option_text) ||
+            in_array($option_text, ['draw', 'tie'])
+        ) {
             return 'match_result';
         }
 
-        // Goals threshold patterns
         if (strpos($option_text, 'over') !== false || strpos($option_text, 'under') !== false) {
             return 'goals_threshold';
         }
 
-        // Both teams score patterns
         if (strpos($option_text, 'both teams score') !== false) {
             return 'both_teams_score';
         }
 
-        // Score prediction patterns (contains dash like 2-1)
         if (preg_match('/\d+-\d+/', $option_text)) {
             return 'match_score';
         }
 
-        // First to score patterns
-        if (strpos($option_text, 'scores first') !== false) {
+        if (strpos($option_text, 'scores first') !== false || strpos($option_text, 'first to score') !== false) {
             return 'first_to_score';
         }
 
@@ -914,6 +911,153 @@ class GoalV_Voting
 
         return $results;
     }
+
+
+    /**
+     * Get all active categories from database
+     * @return array Array of category objects
+     */
+    public function get_available_categories()
+    {
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . 'goalv_vote_categories';
+
+        $categories = $wpdb->get_results(
+            "SELECT * FROM $table_name 
+         WHERE is_active = 1 
+         ORDER BY display_order ASC, category_label ASC"
+        );
+
+        return $categories ? $categories : array();
+    }
+
+    /**
+     * Get category details by key
+     * @param string $category_key Category identifier
+     * @return object|null Category object or null
+     */
+    public function get_category_by_key($category_key)
+    {
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . 'goalv_vote_categories';
+
+        return $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $table_name WHERE category_key = %s AND is_active = 1",
+            $category_key
+        ));
+    }
+
+    /**
+     * Create new category
+     * @param string $category_key Unique key for category
+     * @param string $category_label Display label
+     * @param int $display_order Display order
+     * @return int|false Category ID on success, false on failure
+     */
+    public function create_category($category_key, $category_label, $display_order = null)
+    {
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . 'goalv_vote_categories';
+
+        // Check if key already exists
+        $existing = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $table_name WHERE category_key = %s",
+            $category_key
+        ));
+
+        if ($existing > 0) {
+            return false;
+        }
+
+        // Get next display order if not provided
+        if ($display_order === null) {
+            $max_order = $wpdb->get_var("SELECT MAX(display_order) FROM $table_name");
+            $display_order = $max_order ? ($max_order + 1) : 1;
+        }
+
+        $result = $wpdb->insert(
+            $table_name,
+            array(
+                'category_key' => $category_key,
+                'category_label' => $category_label,
+                'display_order' => $display_order,
+                'is_active' => 1
+            ),
+            array('%s', '%s', '%d', '%d')
+        );
+
+        return $result ? $wpdb->insert_id : false;
+    }
+
+    /**
+     * Update existing category
+     * @param int $category_id Category ID to update
+     * @param string $category_label New label
+     * @param int $display_order New display order
+     * @return bool Success status
+     */
+    public function update_category($category_id, $category_label, $display_order)
+    {
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . 'goalv_vote_categories';
+
+        return $wpdb->update(
+            $table_name,
+            array(
+                'category_label' => $category_label,
+                'display_order' => $display_order
+            ),
+            array('id' => $category_id),
+            array('%s', '%d'),
+            array('%d')
+        );
+    }
+
+    /**
+     * Delete category (mark as inactive)
+     * @param int $category_id Category ID to delete
+     * @return bool Success status
+     */
+    public function delete_category($category_id)
+    {
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . 'goalv_vote_categories';
+
+        // Don't allow deletion of 'other' category
+        $category = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $table_name WHERE id = %d",
+            $category_id
+        ));
+
+        if (!$category || $category->category_key === 'other') {
+            return false;
+        }
+
+        // Move options in this category to 'other'
+        $options_table = $wpdb->prefix . 'goalv_vote_options';
+        $wpdb->update(
+            $options_table,
+            array('category' => 'other'),
+            array('category' => $category->category_key),
+            array('%s'),
+            array('%s')
+        );
+
+        // Mark category as inactive
+        return $wpdb->update(
+            $table_name,
+            array('is_active' => 0),
+            array('id' => $category_id),
+            array('%d'),
+            array('%d')
+        );
+    }
+
 
     // Clear cache when votes are cast:
     public function clear_vote_cache($match_id)

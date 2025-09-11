@@ -8,30 +8,66 @@
 
     const GoalVAdmin = {
         init: function () {
+            if (this.initialized) {
+                console.warn('GoalVAdmin already initialized');
+                return;
+            }
+
+            this.cacheElements();
             this.bindEvents();
             this.initSettings();
             this.handleFormValidation();
+            this.initCustomOptions();
+
+            this.initialized = true;
         },
 
         bindEvents: function () {
-            // Sync matches button - UPDATED to handle week selector
-            $(document).on('click', '#sync-matches-btn', this.handleSync.bind(this));
+            // Sync matches button - namespaced
+            $(document).off('click.goalvSync');
+            $(document).on('click.goalvSync', '#sync-matches-btn', this.handleSync.bind(this));
 
-            // Test API button - NEW
-            $(document).on('click', '#test-api-btn', this.testApiConnection.bind(this));
+            // Test API button - namespaced
+            $(document).off('click.goalvApiTest');
+            $(document).on('click.goalvApiTest', '#test-api-btn', this.testApiConnection.bind(this));
 
-            // Week selector change - NEW
-            $(document).on('change', '#sync_week_selector', this.handleWeekSelection.bind(this));
+            // Week selector change - namespaced (handler used to update button text)
+            $(document).off('change.goalvWeekSelector');
+            $(document).on('change.goalvWeekSelector', '#sync_week_selector', this.handleWeekSelection.bind(this));
 
-            // Settings form validation
-            $(document).on('submit', '#goalv-settings-form', this.validateSettings.bind(this));
+            // Settings form validation - namespaced
+            $(document).off('submit.goalvSettings');
+            $(document).on('submit.goalvSettings', '#goalv-settings-form', this.validateSettings.bind(this));
 
-            // API key testing (legacy)
-            $(document).on('click', '#test-api-key', this.testApiKey.bind(this));
+            // API key testing (legacy) - namespaced
+            $(document).off('click.goalvApiKey');
+            $(document).on('click.goalvApiKey', '#test-api-key', this.testApiKey.bind(this));
 
-            // Competition change
-            $(document).on('change', '#goalv_competition_id', this.handleCompetitionChange.bind(this));
+            // Competition change - namespaced
+            $(document).off('change.goalvCompetition');
+            $(document).on('change.goalvCompetition', '#goalv_competition_id', this.handleCompetitionChange.bind(this));
         },
+
+        cleanup: function () {
+            $(document).off('.goalvSync');
+            $(document).off('.goalvApiTest');
+            $(document).off('.goalvWeekSelector');
+            $(document).off('.goalvSettings');
+            $(document).off('.goalvApiKey');
+            $(document).off('.goalvCompetition');
+            $(document).off('.goalvCustomOptions');
+
+            // Abort any pending AJAX requests
+            $('.add-custom-option-btn').each(function () {
+                const xhr = $(this).data('xhr');
+                if (xhr && xhr.readyState !== 4) {
+                    xhr.abort();
+                }
+            });
+
+            this.initialized = false;
+        },
+
 
         /**
          * Handle week selection change - NEW METHOD
@@ -47,6 +83,138 @@
             }
         },
 
+        handleAjaxError: function (xhr, action = 'request', retryCallback = null) {
+            console.error(`GoalV ${action} failed:`, xhr.status, xhr.statusText);
+
+            const errorMap = {
+                403: 'Permission denied. Please refresh and try again.',
+                404: 'Endpoint not found. Please check plugin configuration.',
+                500: 'Server error. Please check configuration.',
+                502: 'Bad gateway. Server may be overloaded.',
+                503: 'Service unavailable. Please try again later.',
+                0: 'Network error. Please check your connection.'
+            };
+
+            let errorMessage = errorMap[xhr.status] || `${action} failed. Please try again.`;
+
+            // Add retry option for network errors
+            if (xhr.status === 0 || xhr.status >= 500) {
+                if (retryCallback && typeof retryCallback === 'function') {
+                    errorMessage += ' <button class="button button-small retry-ajax">Retry</button>';
+
+                    // Add retry functionality
+                    setTimeout(() => {
+                        $('.retry-ajax').on('click', function (e) {
+                            e.preventDefault();
+                            $(this).remove();
+                            retryCallback();
+                        });
+                    }, 100);
+                }
+            }
+
+            return errorMessage;
+        },
+
+        updateLastSyncStatus: function (weekInfo) {
+            const $statusTable = $('.goalv-status-table');
+            if (!$statusTable.length) return;
+
+            const $lastWeekCell = $statusTable.find('td').eq(3);
+            if ($lastWeekCell.length && weekInfo) {
+                $lastWeekCell.text(weekInfo);
+            }
+        },
+        /**
+ * Get AJAX configuration with proper fallbacks
+ */
+        getAjaxConfig: function () {
+            try {
+                if (typeof goalv_ajax !== 'undefined' && goalv_ajax.ajax_url) {
+                    return {
+                        url: goalv_ajax.ajax_url,
+                        nonce: goalv_ajax.nonce
+                    };
+                }
+
+                if (typeof ajaxurl !== 'undefined') {
+                    const nonce = $('#goalv-admin-nonce').val() ||
+                        $('input[name="_wpnonce"]').val() ||
+                        $('#goalv-vote-nonce').val();
+
+                    if (!nonce) {
+                        console.warn('No nonce available for AJAX requests');
+                        return null;
+                    }
+
+                    return { url: ajaxurl, nonce: nonce };
+                }
+
+                console.error('No AJAX configuration available');
+                return null;
+            } catch (error) {
+                console.error('Error getting AJAX config:', error);
+                return null;
+            }
+        },
+
+        improvedHandleSync: function (e) {
+            e.preventDefault();
+
+            const $btn = this.$syncBtn; // Use cached element
+            const $loader = this.$syncLoader;
+            const $result = this.$syncResult;
+
+            // Add ARIA attributes for screen readers
+            $btn.attr('aria-disabled', 'true');
+            $result.attr('aria-live', 'polite');
+
+            const selectedWeek = this.$weekSelector.val();
+
+            // Show loading state with better accessibility
+            $loader.addClass('is-active').attr('aria-hidden', 'false');
+            $btn.prop('disabled', true).text('Syncing...');
+            $result.html('<div class="notice notice-info"><p role="status">Syncing matches from API...</p></div>');
+
+            const config = this.getAjaxConfig();
+            if (!config) {
+                this.showSyncError($btn, $loader, $result, 'AJAX configuration error. Please refresh the page.');
+                return;
+            }
+
+            const requestData = {
+                action: 'goalv_sync_matches',
+                nonce: config.nonce
+            };
+
+            if (selectedWeek) {
+                requestData.week = selectedWeek;
+            }
+
+            // Add timeout to prevent hanging requests
+            $.ajax({
+                url: config.url,
+                type: 'POST',
+                data: requestData,
+                timeout: 30000 // 30 second timeout
+            })
+                .done((response) => {
+                    this.handleSyncResponse(response, $btn, $loader, $result);
+                })
+                .fail((xhr, status, error) => {
+                    if (status === 'timeout') {
+                        error = 'Request timed out. Please try again.';
+                    }
+                    this.handleSyncFailure(xhr, status, error, $btn, $loader, $result);
+                })
+                .always(() => {
+                    $btn.attr('aria-disabled', 'false');
+                    $loader.attr('aria-hidden', 'true');
+                });
+        },
+
+
+
         /**
          * Handle match synchronization - UPDATED with week selector support
          */
@@ -54,8 +222,8 @@
             e.preventDefault();
 
             const $btn = $(e.currentTarget);
-            const $loader = $('#sync-loader');
-            const $result = $('#sync-result');
+            const $loader = this.$syncLoader;
+            const $result = this.$syncResult;
 
             // Get selected week from dropdown - NEW
             const selectedWeek = $('#sync_week_selector').val();
@@ -265,26 +433,9 @@
             // Load saved settings state
             this.toggleAdvancedSettings();
             this.updateCompetitionInfo();
-            this.initWeekSelector(); // NEW
         },
 
-        /**
-         * Initialize week selector behavior - NEW METHOD
-         */
-        initWeekSelector: function () {
-            const $weekSelector = $('#sync_week_selector');
-            const $syncBtn = $('#sync-matches-btn');
 
-            // Update button text when week selection changes
-            $weekSelector.on('change', function () {
-                const selectedWeek = $(this).val();
-                if (selectedWeek) {
-                    $syncBtn.text(`Sync Game Week ${selectedWeek}`);
-                } else {
-                    $syncBtn.text('Sync Next Week\'s Matches');
-                }
-            });
-        },
 
         validateSettings: function (e) {
             const apiKey = $('#goalv_api_key').val();
@@ -708,19 +859,31 @@
 
 
         initCustomOptions: function () {
-            $(document).on('click', '.add-custom-option-btn', this.addCustomOption.bind(this));
-            $(document).on('click', '.remove-custom-option', this.removeCustomOption.bind(this));
-            $(document).on('keypress', '.custom-option-text', function (e) {
+            // Precise unbinds per event type
+            $(document).off('click.goalvCustomOptions');
+            $(document).off('keypress.goalvCustomOptions');
+
+            // Bind with namespace (preserve original selectors)
+            $(document).on('click.goalvCustomOptions', '.add-custom-option-btn', this.addCustomOption.bind(this));
+            $(document).on('click.goalvCustomOptions', '.remove-custom-option', this.removeCustomOption.bind(this));
+            $(document).on('keypress.goalvCustomOptions', '.custom-option-text', function (e) {
                 if (e.which === 13) { // Enter key
                     e.preventDefault();
                     $(this).closest('.goalv-custom-options').find('.add-custom-option-btn').click();
                 }
             });
         },
+
         addCustomOption: function (e) {
             e.preventDefault();
 
             const $btn = $(e.currentTarget);
+
+            // More robust prevention of multiple clicks
+            if ($btn.prop('disabled') || $btn.hasClass('processing')) {
+                return;
+            }
+
             const $container = $btn.closest('.goalv-custom-options');
             const $textInput = $container.find('.custom-option-text');
             const $typeSelect = $container.find('.custom-option-type');
@@ -736,12 +899,13 @@
                 return;
             }
 
-            // Show loading state
+            // Enhanced loading state
             const originalText = $btn.text();
-            $btn.prop('disabled', true).text('Adding...');
+            $btn.prop('disabled', true).addClass('processing').text('Adding...');
             $result.html('<span style="color: blue;">Adding option...</span>');
 
-            $.post(ajaxurl, {
+            // Add request timeout and abort capability
+            const xhr = $.post(ajaxurl, {
                 action: 'goalv_add_custom_option',
                 match_id: matchId,
                 option_text: optionText,
@@ -751,23 +915,25 @@
                 .done((response) => {
                     if (response.success) {
                         $result.html('<span style="color: green;">Option added successfully!</span>');
-                        $textInput.val(''); // Clear input
+                        $textInput.val('');
 
-                        // Optionally refresh the options list or add to existing list
-                        setTimeout(() => {
-                            $result.html('');
-                        }, 3000);
+                        setTimeout(() => $result.html(''), 3000);
                     } else {
                         $result.html('<span style="color: red;">Failed: ' + (response.data || 'Unknown error') + '</span>');
                     }
                 })
                 .fail((xhr, status, error) => {
                     console.error('Add custom option failed:', xhr, status, error);
-                    $result.html('<span style="color: red;">Network error: ' + error + '</span>');
+                    if (status !== 'abort') {
+                        $result.html('<span style="color: red;">Network error: ' + error + '</span>');
+                    }
                 })
                 .always(() => {
-                    $btn.prop('disabled', false).text(originalText);
+                    $btn.prop('disabled', false).removeClass('processing').text(originalText);
                 });
+
+            // Store xhr for potential abort
+            $btn.data('xhr', xhr);
         },
 
         /**
@@ -812,6 +978,73 @@
             setTimeout(() => {
                 $('.goalv-auto-save-indicator').fadeOut();
             }, 3000);
+        },
+
+        // 1. Add request debouncing for rapid clicks
+        debounceSync: function () {
+            if (this.syncTimeout) {
+                clearTimeout(this.syncTimeout);
+            }
+
+            this.syncTimeout = setTimeout(() => {
+                this.handleSync.apply(this, arguments);
+            }, 300); // 300ms debounce
+        },
+
+        // 2. Add connection status monitoring
+        checkConnection: function () {
+            return navigator.onLine &&
+                (!this.state.lastConnectionCheck ||
+                    Date.now() - this.state.lastConnectionCheck > 30000);
+        },
+
+        // 3. Add better loading indicators
+        showLoadingSpinner: function ($element, text = 'Loading...') {
+            $element.html(`
+        <span class="spinner is-active" style="float: left; margin-right: 5px;"></span>
+        ${text}
+    `);
+        },
+
+        // 4. Add form validation improvements
+        validateForm: function ($form) {
+            const requiredFields = $form.find('[required]');
+            let isValid = true;
+
+            requiredFields.each(function () {
+                const $field = $(this);
+                if (!$field.val().trim()) {
+                    $field.addClass('error');
+                    isValid = false;
+                } else {
+                    $field.removeClass('error');
+                }
+            });
+
+            return isValid;
+        },
+
+        state: {
+            syncInProgress: false,
+            lastSyncTime: null,
+            lastConnectionCheck: null,
+            pendingRequests: new Map()
+        },
+
+        setSyncState: function (inProgress) {
+            this.state.syncInProgress = inProgress;
+            if (!inProgress) {
+                this.state.lastSyncTime = new Date();
+            }
+        },
+        // CACHE COMMON ELEMENTS:
+        cacheElements: function () {
+            this.$syncBtn = $('#sync-matches-btn');
+            this.$syncLoader = $('#sync-loader');
+            this.$syncResult = $('#sync-result');
+            this.$weekSelector = $('#sync_week_selector');
+            this.$settingsForm = $('#goalv-settings-form');
+            this.$adminNonce = $('#goalv-admin-nonce');
         }
 
     };
@@ -823,7 +1056,6 @@
         // Only initialize on admin pages
         if ($('body').hasClass('wp-admin')) {
             GoalVAdmin.init();
-            GoalVAdmin.initCustomOptions();
 
             // Initialize additional features if elements exist
             if ($('.goalv-voting-stats').length) {

@@ -71,10 +71,10 @@ if (!$match) {
         <div class="goalv-voting-section">
             <h2><?php _e('Make Your Predictions', 'goalv'); ?></h2>
             
-            <?php if (!is_user_logged_in()): ?>
+           <?php if (!is_user_logged_in()): ?>
                 <div class="goalv-login-notice">
                     <p><?php _e('Please log in to access detailed predictions and save your votes.', 'goalv'); ?></p>
-                    <a href="<?php echo wp_login_url(get_permalink()); ?>" class="goalv-login-button">
+                    <a href="https://goalvote.com/log-in/?redirect_to=<?php echo urlencode(get_permalink()); ?>" class="goalv-login-button">
                         <?php _e('Login to Vote', 'goalv'); ?>
                     </a>
                 </div>
@@ -156,67 +156,7 @@ if (!$match) {
                 <?php endif; ?>
             <?php endif; ?>
         </div>
-        
-        <!-- Vote Results Summary (Updated for Grouped Display) -->
-        <?php if (!empty($match->vote_results)): ?>
-            <div class="goalv-results-summary">
-                <h3><?php _e('Current Predictions', 'goalv'); ?></h3>
-                
-                <?php if (isset($match->vote_options_grouped) && !empty($match->vote_options_grouped)): ?>
-                    
-                    <?php foreach ($match->vote_options_grouped as $category_key => $category_data): ?>
-                        <div class="goalv-results-group">
-                            <h4 class="goalv-results-group-title"><?php echo esc_html($category_data['label']); ?></h4>
-                            <div class="goalv-results-grid">
-                                <?php foreach ($category_data['options'] as $option): ?>
-                                    <?php if (isset($match->vote_results[$option->id])): ?>
-                                        <?php $result = $match->vote_results[$option->id]; ?>
-                                        <div class="goalv-result-item">
-                                            <div class="goalv-result-text"><?php echo esc_html($result['option_text']); ?></div>
-                                            <div class="goalv-result-bar">
-                                                <div class="goalv-result-fill" style="width: <?php echo esc_attr($result['percentage']); ?>%"></div>
-                                            </div>
-                                            <div class="goalv-result-stats">
-                                                <span class="goalv-result-percentage"><?php echo esc_html($result['percentage']); ?>%</span>
-                                                <span class="goalv-result-count">(<?php echo esc_html($result['votes_count']); ?>)</span>
-                                            </div>
-                                        </div>
-                                    <?php endif; ?>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                    
-                <?php else: ?>
-                    <!-- Fallback: Show ungrouped results -->
-                    <div class="goalv-results-grid">
-                        <?php 
-                        $total_votes = array_sum(array_column($match->vote_results, 'votes_count'));
-                        foreach ($match->vote_results as $result): 
-                        ?>
-                            <div class="goalv-result-item">
-                                <div class="goalv-result-text"><?php echo esc_html($result['option_text']); ?></div>
-                                <div class="goalv-result-bar">
-                                    <div class="goalv-result-fill" style="width: <?php echo esc_attr($result['percentage']); ?>%"></div>
-                                </div>
-                                <div class="goalv-result-stats">
-                                    <span class="goalv-result-percentage"><?php echo esc_html($result['percentage']); ?>%</span>
-                                    <span class="goalv-result-count">(<?php echo esc_html($result['votes_count']); ?>)</span>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
-                
-                <div class="goalv-total-votes">
-                    <?php 
-                    $total_votes = array_sum(array_column($match->vote_results, 'votes_count'));
-                    printf(__('Total Votes: %d', 'goalv'), $total_votes); 
-                    ?>
-                </div>
-            </div>
-        <?php endif; ?>
-        
+
         <!-- Back to matches -->
         <div class="goalv-navigation">
             <a href="<?php echo home_url(); ?>" class="goalv-back-button">

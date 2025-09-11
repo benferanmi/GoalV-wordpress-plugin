@@ -27,6 +27,11 @@ class GoalV_Admin
         add_action('goalv_matches_synced', array($this, 'update_last_sync_time'));
         add_action('wp_ajax_goalv_get_homepage_weeks', array($this, 'ajax_get_homepage_weeks'));
 
+        add_action('wp_ajax_goalv_add_category', array($this, 'ajax_add_category'));
+        add_action('wp_ajax_goalv_update_category', array($this, 'ajax_update_category'));
+        add_action('wp_ajax_goalv_delete_category', array($this, 'ajax_delete_category'));
+        add_action('wp_ajax_goalv_reorder_categories', array($this, 'ajax_reorder_categories'));
+
     }
 
     /**
@@ -838,15 +843,12 @@ class GoalV_Admin
             return isset($option->is_custom) && $option->is_custom == 1;
         });
 
-        // Available categories
-        $categories = array(
-            'match_result' => __('Match Result', 'goalv'),
-            'match_score' => __('Exact Score', 'goalv'),
-            'goals_threshold' => __('Total Goals', 'goalv'),
-            'both_teams_score' => __('Both Teams to Score', 'goalv'),
-            'first_to_score' => __('First Team to Score', 'goalv'),
-            'other' => __('Other Predictions', 'goalv')
-        );
+        // Get available categories from database
+        $categories = $voting->get_available_categories();
+        $category_options = array();
+        foreach ($categories as $cat) {
+            $category_options[$cat->category_key] = $cat->category_label;
+        }
         ?>
 
         <div id="goalv-custom-options-container">
@@ -869,7 +871,7 @@ class GoalV_Admin
                                     </td>
                                     <td style="width: 30%;">
                                         <select name="goalv_custom_options[<?php echo esc_attr($index); ?>][category]">
-                                            <?php foreach ($categories as $key => $label): ?>
+                                            <?php foreach ($category_options as $key => $label): ?>
                                                 <option value="<?php echo esc_attr($key); ?>" <?php selected(isset($option->category) ? $option->category : 'other', $key); ?>>
                                                     <?php echo esc_html($label); ?>
                                                 </option>
@@ -900,7 +902,7 @@ class GoalV_Admin
                         </td>
                         <td style="width: 30%;">
                             <select id="new-custom-option-category">
-                                <?php foreach ($categories as $key => $label): ?>
+                                <?php foreach ($category_options as $key => $label): ?>
                                     <option value="<?php echo esc_attr($key); ?>">
                                         <?php echo esc_html($label); ?>
                                     </option>
@@ -937,7 +939,7 @@ class GoalV_Admin
                     html += '<input type="hidden" name="goalv_custom_options[' + optionIndex + '][id]" value="0" /></td>';
                     html += '<td style="width: 30%;"><select name="goalv_custom_options[' + optionIndex + '][category]">';
 
-                    <?php foreach ($categories as $key => $label): ?>
+                    <?php foreach ($category_options as $key => $label): ?>
                         html += '<option value="<?php echo esc_js($key); ?>"' + (category === '<?php echo esc_js($key); ?>' ? ' selected' : '') + '><?php echo esc_js($label); ?></option>';
                     <?php endforeach; ?>
 
@@ -992,6 +994,7 @@ class GoalV_Admin
         </style>
         <?php
     }
+
     /**
      * Save custom voting options
      */
@@ -1022,14 +1025,165 @@ class GoalV_Admin
     }
 
     /**
-     * Process custom options data
+     * AJAX handler for adding new category
+     */
+    public function ajax_add_category()
+    {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'goalv_admin_nonce')) {
+            wp_send_json_error(__('Security check failed', 'goalv'));
+        }
+
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(__('Insufficient permissions', 'goalv'));
+        }
+
+        $category_key = sanitize_key($_POST['category_key']);
+        $category_label = sanitize_text_field($_POST['category_label']);
+
+        if (empty($category_key) || empty($category_label)) {
+            wp_send_json_error(__('Category key and label are required', 'goalv'));
+        }
+
+        // Validate key format
+        if (!preg_match('/^[a-z_]+$/', $category_key)) {
+            wp_send_json_error(__('Category key must contain only lowercase letters and underscores', 'goalv'));
+        }
+
+        $voting = new GoalV_Voting();
+        $category_id = $voting->create_category($category_key, $category_label);
+
+        if ($category_id) {
+            wp_send_json_success(array(
+                'message' => __('Category added successfully', 'goalv'),
+                'category_id' => $category_id,
+                'category_key' => $category_key,
+                'category_label' => $category_label
+            ));
+        } else {
+            wp_send_json_error(__('Failed to add category. Key might already exist.', 'goalv'));
+        }
+    }
+
+    /**
+     * AJAX handler for updating category
+     */
+    public function ajax_update_category()
+    {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'goalv_admin_nonce')) {
+            wp_send_json_error(__('Security check failed', 'goalv'));
+        }
+
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(__('Insufficient permissions', 'goalv'));
+        }
+
+        $category_id = intval($_POST['category_id']);
+        $category_label = sanitize_text_field($_POST['category_label']);
+        $display_order = intval($_POST['display_order']);
+
+        if ($category_id <= 0 || empty($category_label)) {
+            wp_send_json_error(__('Invalid category data', 'goalv'));
+        }
+
+        $voting = new GoalV_Voting();
+        $success = $voting->update_category($category_id, $category_label, $display_order);
+
+        if ($success) {
+            wp_send_json_success(__('Category updated successfully', 'goalv'));
+        } else {
+            wp_send_json_error(__('Failed to update category', 'goalv'));
+        }
+    }
+
+    /**
+     * AJAX handler for deleting category
+     */
+    public function ajax_delete_category()
+    {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'goalv_admin_nonce')) {
+            wp_send_json_error(__('Security check failed', 'goalv'));
+        }
+
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(__('Insufficient permissions', 'goalv'));
+        }
+
+        $category_id = intval($_POST['category_id']);
+
+        if ($category_id <= 0) {
+            wp_send_json_error(__('Invalid category ID', 'goalv'));
+        }
+
+        $voting = new GoalV_Voting();
+        $success = $voting->delete_category($category_id);
+
+        if ($success) {
+            wp_send_json_success(__('Category deleted successfully', 'goalv'));
+        } else {
+            wp_send_json_error(__('Failed to delete category. Cannot delete "other" category.', 'goalv'));
+        }
+    }
+
+    /**
+     * AJAX handler for reordering categories
+     */
+    public function ajax_reorder_categories()
+    {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'goalv_admin_nonce')) {
+            wp_send_json_error(__('Security check failed', 'goalv'));
+        }
+
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(__('Insufficient permissions', 'goalv'));
+        }
+
+        $category_order = json_decode(stripslashes($_POST['category_order']), true);
+
+        if (!is_array($category_order)) {
+            wp_send_json_error(__('Invalid order data', 'goalv'));
+        }
+
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'goalv_vote_categories';
+
+        foreach ($category_order as $index => $category_id) {
+            $wpdb->update(
+                $table_name,
+                array('display_order' => $index + 1),
+                array('id' => intval($category_id)),
+                array('%d'),
+                array('%d')
+            );
+        }
+
+        wp_send_json_success(__('Categories reordered successfully', 'goalv'));
+    }
+
+
+    /**
+     * UPDATED: Process custom options data with database category validation
      */
     private function process_custom_options_data($match_id, $options_data)
     {
         global $wpdb;
 
         $table_name = $wpdb->prefix . 'goalv_vote_options';
-        $valid_categories = array('match_result', 'match_score', 'goals_threshold', 'both_teams_score', 'first_to_score', 'other');
+
+        // Get valid categories from database
+        $voting = new GoalV_Voting();
+        $categories = $voting->get_available_categories();
+        $valid_categories = array();
+        foreach ($categories as $cat) {
+            $valid_categories[] = $cat->category_key;
+        }
 
         foreach ($options_data as $option_data) {
             $text = sanitize_text_field($option_data['text']);
@@ -1041,7 +1195,7 @@ class GoalV_Admin
                 continue;
             }
 
-            // Validate category
+            // Validate category against database
             if (!in_array($category, $valid_categories)) {
                 $category = 'other';
             }

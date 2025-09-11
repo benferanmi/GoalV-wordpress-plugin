@@ -116,16 +116,27 @@
                 });
         },
 
+
         /**
-         * Handle vote response - UPDATED for one-vote-per-category system
+         * FIXED: Handle vote response - Updated to work with both grouped and non-grouped voting
          */
         handleVoteResponse: function (response, $btn, matchId, location, optionId) {
-            const $container = $btn.closest('.goalv-voting-section, .goalv-grid-voting');
+            const $container = $btn.closest('.goalv-voting-section, .goalv-grid-voting, .goalv-voting-inline');
 
             if (response.success) {
                 // NEW: Handle one-vote-per-category system
                 if (response.data.one_vote_per_category) {
-                    this.updateVoteUIByCategory(matchId, location, response.data.results, response.data.user_votes_by_category, response.data.category);
+                    // Check if this is a grouped voting interface (single page) or simple interface (homepage)
+                    const $matchContainer = $btn.closest('.goalv-match-card, .goalv-match-grid-item, .goalv-detailed-voting');
+                    const hasGroupedStructure = $matchContainer.find('.goalv-voting-group[data-category]').length > 0;
+
+                    if (hasGroupedStructure) {
+                        // Single page with grouped categories
+                        this.updateVoteUIByCategory(matchId, location, response.data.results, response.data.user_votes_by_category, response.data.category);
+                    } else {
+                        // Homepage/table template - simple voting (all basic options are match_result category)
+                        this.updateSimpleVotingUI(matchId, location, response.data.results, response.data.user_votes_by_category);
+                    }
 
                     // Store votes by category for guest users
                     if (!goalv_ajax.is_user_logged_in) {
@@ -146,8 +157,39 @@
         },
 
         /**
- * Store votes by category for guest users
- */
+         * NEW: Update simple voting UI (for homepage/table template)
+         * This handles the non-grouped voting buttons like .goalv-vote-btn-inline
+         */
+        updateSimpleVotingUI: function (matchId, location, results, userVotesByCategory) {
+            const $matchContainer = $(`.goalv-match-card[data-match-id="${matchId}"], .goalv-match-grid-item[data-match-id="${matchId}"], .goalv-table-row[data-match-id="${matchId}"]`);
+
+            // Update results first
+            this.updateVoteResultsOnly($matchContainer, results, location);
+
+            // Clear all selections first
+            $matchContainer.find('.goalv-vote-btn, .goalv-vote-btn-inline, .goalv-grid-vote-btn').each(function () {
+                $(this).removeClass('selected').removeAttr('data-selected');
+                $(this).closest('.goalv-vote-option').removeClass('selected');
+            });
+
+            // Get the selected option ID for match_result category (which is what homepage uses)
+            const selectedOptionId = userVotesByCategory['match_result'];
+
+            if (selectedOptionId) {
+                // Find and select the button with this option ID
+                const $selectedBtn = $matchContainer.find(`.goalv-vote-btn[data-option-id="${selectedOptionId}"], .goalv-vote-btn-inline[data-option-id="${selectedOptionId}"], .goalv-grid-vote-btn[data-option-id="${selectedOptionId}"]`);
+
+                if ($selectedBtn.length) {
+                    $selectedBtn.addClass('selected').attr('data-selected', 'true');
+                    $selectedBtn.closest('.goalv-vote-option').addClass('selected');
+                    console.log('Selected option ID on homepage:', selectedOptionId); // Debug log
+                }
+            }
+        },
+
+        /**
+         * Store votes by category for guest users
+         */
         storeVotesByCategory: function (matchId, location, votesByCategory) {
             if (!goalv_ajax.is_user_logged_in) {
                 const storageKey = `goalv_votes_by_category_${matchId}_${location}`;
@@ -168,8 +210,8 @@
         },
 
         /**
- * Update UI for one-vote-per-category system 
- */
+         * UPDATED: Update UI for one-vote-per-category system (for single page grouped voting)
+         */
         updateVoteUIByCategory: function (matchId, location, results, userVotesByCategory, changedCategory) {
             const $matchContainer = $(`.goalv-match-card[data-match-id="${matchId}"], .goalv-match-grid-item[data-match-id="${matchId}"], .goalv-detailed-voting[data-match-id="${matchId}"]`);
 
@@ -382,37 +424,68 @@
             this.storeVotes(matchId, location, [optionId]);
         },
 
+        /**
+ * UPDATED: Initialize stored votes to handle both systems
+ */
         initStoredVotes: function () {
             if (goalv_ajax.is_user_logged_in) {
                 return;
             }
 
-            $('.goalv-vote-btn, .goalv-grid-vote-btn').each(function () {
-                const $btn = $(this);
-                const matchId = $btn.data('match-id');
-                const location = $btn.data('location') || 'homepage';
-                const optionId = parseInt($btn.data('option-id'));
-
-                const storedVotes = GoalVFrontend.getStoredVotes(matchId, location);
-                if (storedVotes.includes(optionId)) {
-                    $btn.addClass('selected').attr('data-selected', 'true');
-                    $btn.closest('.goalv-vote-option').addClass('selected');
-                }
-            });
-
-            // Show multiple votes indicators for stored votes
-            $('.goalv-match-card, .goalv-match-grid-item, .goalv-detailed-voting').each(function () {
+            // Handle category-based votes (new system)
+            $('.goalv-match-card, .goalv-match-grid-item, .goalv-detailed-voting, .goalv-table-row').each(function () {
                 const $match = $(this);
                 const matchId = $match.data('match-id');
                 if (!matchId) return;
 
                 const location = $match.hasClass('goalv-detailed-voting') ? 'details' : 'homepage';
-                const storedVotes = GoalVFrontend.getStoredVotes(matchId, location);
 
-                if (storedVotes.length > 1) {
-                    $match.addClass('goalv-multiple-votes-active');
-                    if (location === 'details') {
-                        GoalVFrontend.showMultipleVotesIndicator($match, storedVotes.length);
+                // Check if this match has grouped structure
+                const hasGroupedStructure = $match.find('.goalv-voting-group[data-category]').length > 0;
+
+                if (hasGroupedStructure) {
+                    // Handle grouped voting (single page)
+                    const storedVotesByCategory = GoalVFrontend.getStoredVotesByCategory(matchId, location);
+
+                    Object.keys(storedVotesByCategory).forEach(category => {
+                        const selectedOptionId = storedVotesByCategory[category];
+                        const $categoryBtn = $match.find(`.goalv-voting-group[data-category="${category}"] .goalv-vote-btn[data-option-id="${selectedOptionId}"]`);
+
+                        if ($categoryBtn.length) {
+                            $categoryBtn.addClass('selected').attr('data-selected', 'true');
+                            $categoryBtn.closest('.goalv-vote-option').addClass('selected');
+                        }
+                    });
+                } else {
+                    // Handle simple voting (homepage/table)
+                    const storedVotesByCategory = GoalVFrontend.getStoredVotesByCategory(matchId, location);
+                    const selectedOptionId = storedVotesByCategory['match_result'];
+
+                    if (selectedOptionId) {
+                        const $selectedBtn = $match.find(`.goalv-vote-btn[data-option-id="${selectedOptionId}"], .goalv-vote-btn-inline[data-option-id="${selectedOptionId}"], .goalv-grid-vote-btn[data-option-id="${selectedOptionId}"]`);
+
+                        if ($selectedBtn.length) {
+                            $selectedBtn.addClass('selected').attr('data-selected', 'true');
+                            $selectedBtn.closest('.goalv-vote-option').addClass('selected');
+                        }
+                    }
+                }
+            });
+
+            // Fallback: Handle legacy stored votes (for backward compatibility)
+            $('.goalv-vote-btn, .goalv-grid-vote-btn, .goalv-vote-btn-inline').each(function () {
+                const $btn = $(this);
+                const matchId = $btn.data('match-id');
+                const location = $btn.data('location') || 'homepage';
+                const optionId = parseInt($btn.data('option-id'));
+
+                // Only apply legacy votes if no category-based votes exist
+                const storedVotesByCategory = GoalVFrontend.getStoredVotesByCategory(matchId, location);
+                if (Object.keys(storedVotesByCategory).length === 0) {
+                    const storedVotes = GoalVFrontend.getStoredVotes(matchId, location);
+                    if (storedVotes.includes(optionId)) {
+                        $btn.addClass('selected').attr('data-selected', 'true');
+                        $btn.closest('.goalv-vote-option').addClass('selected');
                     }
                 }
             });
