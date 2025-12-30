@@ -1,0 +1,1185 @@
+/**
+ * GoalV Admin Stylesheet
+ * Modern admin dashboard styles
+ * 
+ * @package GoalV
+ * @since 8.0.0
+ */
+
+/* ==========================================================================
+   Tab Navigation
+   ========================================================================== */
+
+.goalv-tab-wrapper {
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ccd0d4;
+}
+
+.goalv-tab-wrapper .nav-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 15px;
+    font-size: 14px;
+}
+
+.goalv-tab-wrapper .dashicons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+/* ==========================================================================
+   Admin Sections
+   ========================================================================== */
+
+.goalv-admin-section {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.goalv-admin-section h2 {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.goalv-admin-section h3 {
+    margin-top: 0;
+}
+
+/* ==========================================================================
+   Status Badges
+   ========================================================================== */
+
+.goalv-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.goalv-status-badge .dashicons {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+}
+
+.goalv-status-badge.goalv-status-success,
+.goalv-status-badge.goalv-status-active {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.goalv-status-badge.goalv-status-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.goalv-status-badge.goalv-status-inactive {
+    background: #f8f9fa;
+    color: #6c757d;
+    border: 1px solid #dee2e6;
+}
+
+.goalv-status-badge.goalv-status-warning {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+/* ==========================================================================
+   Status Cards (Dashboard & Sync)
+   ========================================================================== */
+
+.goalv-status-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: box-shadow 0.3s, transform 0.3s;
+}
+
+.goalv-status-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.goalv-status-card-icon {
+    font-size: 48px;
+    color: #0073aa;
+    flex-shrink: 0;
+}
+
+.goalv-status-card-icon .dashicons {
+    width: 48px;
+    height: 48px;
+    font-size: 48px;
+}
+
+.goalv-status-card-content {
+    flex-grow: 1;
+}
+
+.goalv-status-card-content h4 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    color: #666;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.goalv-status-card-content .goalv-status-value {
+    font-size: 28px;
+    font-weight: bold;
+    color: #333;
+    line-height: 1;
+    margin: 0;
+}
+
+.goalv-status-card-content .goalv-status-meta {
+    margin: 5px 0 0 0;
+    font-size: 12px;
+    color: #999;
+}
+
+/* ==========================================================================
+   API Usage Monitor
+   ========================================================================== */
+
+.goalv-usage-stats {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.goalv-usage-stats.goalv-usage-good {
+    border-left: 4px solid #28a745;
+}
+
+.goalv-usage-stats.goalv-usage-warning {
+    border-left: 4px solid #ffc107;
+}
+
+.goalv-usage-stats.goalv-usage-danger {
+    border-left: 4px solid #dc3545;
+}
+
+.goalv-usage-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.goalv-usage-header h4 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.goalv-usage-status {
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 12px;
+}
+
+.goalv-usage-good .goalv-usage-status {
+    background: #d4edda;
+    color: #155724;
+}
+
+.goalv-usage-warning .goalv-usage-status {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.goalv-usage-danger .goalv-usage-status {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.goalv-usage-meter {
+    margin-bottom: 15px;
+}
+
+.goalv-usage-bar {
+    width: 100%;
+    height: 20px;
+    background: #f0f0f0;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #ddd;
+}
+
+.goalv-usage-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #28a745, #ffc107, #dc3545);
+    transition: width 0.5s ease;
+}
+
+.goalv-usage-numbers {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.goalv-usage-stat {
+    text-align: center;
+}
+
+.goalv-usage-label {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.goalv-usage-value {
+    display: block;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+}
+
+.goalv-usage-warning-message {
+    margin-top: 15px;
+    padding: 10px;
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 4px;
+    color: #856404;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ==========================================================================
+   Competition Management
+   ========================================================================== */
+
+.goalv-competitions-table {
+    margin-top: 20px;
+}
+
+.goalv-competitions-table img {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+}
+
+.goalv-competition-api-id {
+    color: #999;
+    font-size: 12px;
+}
+
+.goalv-stat-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    background: #0073aa;
+    color: #fff;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-right: 10px;
+}
+
+.goalv-no-competitions {
+    padding: 40px;
+    text-align: center;
+    color: #666;
+}
+
+/* ==========================================================================
+   Live Sync Toggle
+   ========================================================================== */
+
+.goalv-toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.goalv-toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.goalv-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 34px;
+}
+
+.goalv-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+.goalv-toggle-switch input:checked + .goalv-toggle-slider {
+    background-color: #28a745;
+}
+
+.goalv-toggle-switch input:checked + .goalv-toggle-slider:before {
+    transform: translateX(26px);
+}
+
+/* ==========================================================================
+   Category Management (Preserved from v7)
+   ========================================================================== */
+
+.goalv-category-item {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+}
+
+.goalv-category-item:hover {
+    border-color: #999;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.goalv-category-content {
+    padding: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.goalv-drag-handle {
+    cursor: move;
+    color: #999;
+    margin-right: 15px;
+    font-size: 20px;
+}
+
+.goalv-category-info {
+    flex-grow: 1;
+}
+
+.goalv-category-info strong {
+    font-size: 16px;
+}
+
+.goalv-category-key {
+    color: #666;
+    font-size: 14px;
+    margin-left: 10px;
+}
+
+.goalv-category-meta {
+    margin-top: 5px;
+    font-size: 12px;
+    color: #999;
+}
+
+.goalv-category-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.goalv-edit-form {
+    padding: 15px;
+    background: #f9f9f9;
+    border-top: 1px solid #ddd;
+}
+
+.goalv-category-placeholder {
+    height: 60px;
+    background: #f0f0f0;
+    border: 2px dashed #ddd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+/* ==========================================================================
+   Health Checks
+   ========================================================================== */
+
+.goalv-health-check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 15px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #fff;
+}
+
+.goalv-health-check-item .dashicons {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.goalv-health-check-item.goalv-health-pass {
+    border-left: 4px solid #28a745;
+}
+
+.goalv-health-check-item.goalv-health-pass .dashicons {
+    color: #28a745;
+}
+
+.goalv-health-check-item.goalv-health-fail {
+    border-left: 4px solid #dc3545;
+}
+
+.goalv-health-check-item.goalv-health-fail .dashicons {
+    color: #dc3545;
+}
+
+.goalv-health-check-content {
+    flex-grow: 1;
+}
+
+.goalv-health-check-content strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 14px;
+}
+
+.goalv-health-check-content p {
+    margin: 0;
+    color: #666;
+    font-size: 13px;
+}
+
+/* ==========================================================================
+   Live Match Monitor
+   ========================================================================== */
+
+.goalv-live-score {
+    font-weight: bold;
+    font-size: 16px;
+    color: #dc3545;
+}
+
+.goalv-match-minute {
+    background: #dc3545;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* ==========================================================================
+   Sync Logs
+   ========================================================================== */
+
+.goalv-log-type {
+    display: inline-block;
+    padding: 4px 10px;
+    background: #e9ecef;
+    border-radius: 12px;
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   Buttons & Actions
+   ========================================================================== */
+
+.goalv-sync-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.button .dashicons {
+    vertical-align: middle;
+    margin-right: 4px;
+}
+
+/* ==========================================================================
+   Loading Spinners
+   ========================================================================== */
+
+.spinner.is-active {
+    visibility: visible;
+    float: none;
+    display: inline-block;
+    margin-left: 10px;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    .goalv-status-card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .goalv-status-card-icon {
+        margin-bottom: 10px;
+    }
+
+    .goalv-usage-numbers {
+        grid-template-columns: 1fr;
+    }
+
+    .goalv-category-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .goalv-category-actions {
+        margin-top: 10px;
+        width: 100%;
+    }
+
+    .goalv-sync-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .goalv-sync-buttons .button {
+        width: 100%;
+    }
+}
+
+/* ==========================================================================
+   Custom Option Management (Match Edit Screen)
+   ========================================================================== */
+
+.goalv-custom-option-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 8px;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.goalv-option-category {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #e0e0e0;
+    border-radius: 12px;
+    font-size: 11px;
+    margin-left: 10px;
+}
+
+/* ==========================================================================
+   Notices & Alerts
+   ========================================================================== */
+
+.goalv-admin-notification {
+    margin: 20px 0;
+}
+
+/* ==========================================================================
+   Utility Classes
+   ========================================================================== */
+
+.goalv-text-center {
+    text-align: center;
+}
+
+.goalv-mt-20 {
+    margin-top: 20px;
+}
+
+.goalv-mb-20 {
+    margin-bottom: 20px;
+}
+
+.goalv-p-20 {
+    padding: 20px;
+}
+
+
+/**
+ * GoalV Admin CSS - Phase 7 Additions
+ * Version: 8.2.0
+ * 
+ * Add these styles to your existing goalv-admin.css
+ */
+
+/* ============================================
+   TOAST NOTIFICATION SYSTEM
+   ============================================ */
+
+.goalv-toast-container {
+    position: fixed;
+    z-index: 999999;
+    pointer-events: none;
+}
+
+.goalv-toast-container.goalv-toast-top-right {
+    top: 20px;
+    right: 20px;
+}
+
+.goalv-toast-container.goalv-toast-top-left {
+    top: 20px;
+    left: 20px;
+}
+
+.goalv-toast-container.goalv-toast-bottom-right {
+    bottom: 20px;
+    right: 20px;
+}
+
+.goalv-toast-container.goalv-toast-bottom-left {
+    bottom: 20px;
+    left: 20px;
+}
+
+.goalv-toast {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    padding: 16px;
+    margin-bottom: 12px;
+    min-width: 300px;
+    max-width: 500px;
+    pointer-events: all;
+    transform: translateX(400px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.goalv-toast.goalv-toast-show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.goalv-toast.goalv-toast-hide {
+    transform: translateX(400px);
+    opacity: 0;
+}
+
+/* Toast Types */
+.goalv-toast-success {
+    border-left: 4px solid #28a745;
+}
+
+.goalv-toast-error {
+    border-left: 4px solid #dc3545;
+}
+
+.goalv-toast-warning {
+    border-left: 4px solid #ffc107;
+}
+
+.goalv-toast-info {
+    border-left: 4px solid #17a2b8;
+}
+
+/* Toast Icon */
+.goalv-toast-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.goalv-toast-success .goalv-toast-icon .dashicons {
+    color: #28a745;
+}
+
+.goalv-toast-error .goalv-toast-icon .dashicons {
+    color: #dc3545;
+}
+
+.goalv-toast-warning .goalv-toast-icon .dashicons {
+    color: #ffc107;
+}
+
+.goalv-toast-info .goalv-toast-icon .dashicons {
+    color: #17a2b8;
+}
+
+/* Toast Content */
+.goalv-toast-content {
+    flex: 1;
+}
+
+.goalv-toast-label {
+    font-weight: 600;
+    font-size: 14px;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.goalv-toast-message {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.4;
+}
+
+/* Toast Close Button */
+.goalv-toast-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+}
+
+.goalv-toast-close:hover {
+    opacity: 1;
+}
+
+.goalv-toast-close .dashicons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+/* Toast Progress Bar */
+.goalv-toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.goalv-toast-progress-bar {
+    height: 100%;
+    background: currentColor;
+    animation: goalv-toast-progress linear;
+    transform-origin: left;
+}
+
+.goalv-toast-success .goalv-toast-progress-bar {
+    background: #28a745;
+}
+
+.goalv-toast-error .goalv-toast-progress-bar {
+    background: #dc3545;
+}
+
+.goalv-toast-warning .goalv-toast-progress-bar {
+    background: #ffc107;
+}
+
+.goalv-toast-info .goalv-toast-progress-bar {
+    background: #17a2b8;
+}
+
+@keyframes goalv-toast-progress {
+    from {
+        width: 100%;
+    }
+    to {
+        width: 0%;
+    }
+}
+
+/* Screen Reader Only */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ============================================
+   LOADING OVERLAY
+   ============================================ */
+
+.goalv-loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999998;
+}
+
+.goalv-loading-content {
+    text-align: center;
+    color: #fff;
+}
+
+.goalv-loading-spinner {
+    border: 4px solid rgba(255,255,255,0.3);
+    border-top: 4px solid #fff;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: goalv-spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes goalv-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.goalv-loading-content p {
+    font-size: 16px;
+    margin: 0;
+}
+
+/* ============================================
+   BUTTON LOADING STATES
+   ============================================ */
+
+.goalv-btn-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.goalv-btn-loading .spinner {
+    visibility: visible;
+    float: none;
+    margin: 0 8px 0 0;
+}
+
+/* ============================================
+   LIVE STATUS INDICATORS
+   ============================================ */
+
+.goalv-status-live-pulse {
+    animation: goalv-pulse 2s infinite;
+}
+
+@keyframes goalv-pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+.goalv-live-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #dc3545;
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    animation: goalv-pulse 2s infinite;
+}
+
+/* ============================================
+   STAT CARD UPDATES
+   ============================================ */
+
+.goalv-stat-updated {
+    animation: goalv-stat-flash 0.5s;
+}
+
+@keyframes goalv-stat-flash {
+    0%, 100% {
+        background: transparent;
+    }
+    50% {
+        background: rgba(40, 167, 69, 0.1);
+    }
+}
+
+/* ============================================
+   FORM CHANGE INDICATORS
+   ============================================ */
+
+.goalv-form-changed {
+    position: relative;
+}
+
+.goalv-form-changed::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -10px;
+    width: 4px;
+    height: 100%;
+    background: #ffc107;
+}
+
+/* ============================================
+   SYNC PROGRESS INDICATORS
+   ============================================ */
+
+.goalv-progress-bar {
+    width: 100%;
+    height: 6px;
+    background: #e9ecef;
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 10px 0;
+}
+
+.goalv-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0073aa, #00a0d2);
+    transition: width 0.3s ease;
+    position: relative;
+}
+
+.goalv-progress-animated {
+    animation: goalv-progress-slide 2s infinite;
+}
+
+@keyframes goalv-progress-slide {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 100% 50%;
+    }
+}
+
+/* ============================================
+   STATUS BADGES
+   ============================================ */
+
+.goalv-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.goalv-status-badge .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+.goalv-status-success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.goalv-status-error {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.goalv-status-warning {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.goalv-status-info {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.goalv-status-unknown {
+    background: #e2e3e5;
+    color: #6c757d;
+}
+
+/* ============================================
+   TOGGLE SWITCHES
+   ============================================ */
+
+.goalv-toggle {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.goalv-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.goalv-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.3s;
+    border-radius: 24px;
+}
+
+.goalv-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+.goalv-toggle input:checked + .goalv-toggle-slider {
+    background-color: #0073aa;
+}
+
+.goalv-toggle input:checked + .goalv-toggle-slider:before {
+    transform: translateX(26px);
+}
+
+.goalv-toggle input:disabled + .goalv-toggle-slider {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.goalv-toggle-label {
+    margin-left: 10px;
+    font-size: 13px;
+    vertical-align: middle;
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+
+@media screen and (max-width: 768px) {
+    .goalv-toast-container {
+        left: 10px;
+        right: 10px;
+    }
+    
+    .goalv-toast {
+        min-width: auto;
+        max-width: 100%;
+    }
+    
+    .goalv-toast-show {
+        transform: translateY(-10px);
+    }
+    
+    .goalv-toast-hide {
+        transform: translateY(-100px);
+        opacity: 0;
+    }
+}
+
+/* ============================================
+   DARK MODE SUPPORT (Optional)
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+    .goalv-toast {
+        background: #2c2c2c;
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+    
+    .goalv-toast-message {
+        color: #ccc;
+    }
+}
+
+/* ============================================
+   ACCESSIBILITY ENHANCEMENTS
+   ============================================ */
+
+.goalv-toast:focus-within {
+    outline: 2px solid #0073aa;
+    outline-offset: 2px;
+}
+
+.goalv-toast-close:focus {
+    outline: 2px solid #0073aa;
+    outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .goalv-toast {
+        border: 2px solid currentColor;
+    }
+    
+    .goalv-status-badge {
+        border: 1px solid currentColor;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .goalv-toast,
+    .goalv-loading-spinner,
+    .goalv-status-live-pulse,
+    .goalv-progress-animated {
+        animation: none;
+        transition: none;
+    }
+}
+
+/* Match table enhancements */
+.goalv-row-updated {
+    animation: goalv-row-flash 0.5s;
+}
+
+@keyframes goalv-row-flash {
+    0%, 100% { background: transparent; }
+    50% { background: rgba(40, 167, 69, 0.1); }
+}
+
+/* Match status badges */
+.goalv-status-scheduled { background: #e3f2fd; color: #1976d2; }
+.goalv-status-live { background: #ffebee; color: #c62828; }
+.goalv-status-finished { background: #e8f5e9; color: #2e7d32; }
+.goalv-status-postponed { background: #fff3e0; color: #ef6c00; }
+.goalv-status-cancelled { background: #fafafa; color: #616161; }

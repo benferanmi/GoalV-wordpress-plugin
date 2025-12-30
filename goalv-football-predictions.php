@@ -2,16 +2,16 @@
 /**
  * Plugin Name: GoalV Football Predictions
  * Plugin URI: https://oluwaferanmi-developer-site.vercel.app/
- * Description: Complete football match prediction system with API integration and dual voting system
- * Version: 8.0.0
- * Changes: Admin to be able to add categories, update categories, add vote for categories
+ * Description: Multi-league football prediction platform with live scores and autonomous syncing
+ * Version: 9.1.35
+ * changes: fixing elementor page not opening issue
  * Author: Opafunso Benjamin
  * License: GPL v2 or later
- * Text Domain: https://oluwaferanmi-developer-site.vercel.app/
+ * Text Domain: goalv
  * Domain Path: /languages
  */
 
-// Prevent direct access
+// Prevent direct accesss
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -19,13 +19,16 @@ if (!defined('ABSPATH')) {
 // Define plugin constants
 define('GOALV_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('GOALV_PLUGIN_PATH', plugin_dir_path(__FILE__));
-define('GOALV_VERSION', '1.0.0');
+define('GOALV_VERSION', '9.0.1');
+
+error_log('🚀 GoalV Plugin Loaded - Version: ' . GOALV_VERSION . ' - Time: ' . current_time('mysql'));
 
 /**
- * Main GoalV Plugin Class
+ * Main GoalV Plugin Class - Pure Database System
  */
 class GoalV_Football_Predictions
 {
+    private $sync_scheduler;
 
     /**
      * Constructor
@@ -33,8 +36,6 @@ class GoalV_Football_Predictions
     public function __construct()
     {
         add_action('plugins_loaded', array($this, 'init'));
-        register_activation_hook(__FILE__, array($this, 'activate'));
-        register_deactivation_hook(__FILE__, array($this, 'deactivate'));
     }
 
     /**
@@ -53,18 +54,65 @@ class GoalV_Football_Predictions
 
         // Register hooks
         $this->register_hooks();
+
+        if (is_admin()) {
+            self::check_database_migration();
+        }
     }
 
     /**
-     * Include required files
+     * Include required files - OPTIMIZED LOADING ORDER
+     * 
+     * CRITICAL: Vote Options Manager MUST load BEFORE API classes
      */
     private function includes()
     {
-        require_once GOALV_PLUGIN_PATH . 'includes/class-goalv-cpt.php';
-        require_once GOALV_PLUGIN_PATH . 'includes/class-goalv-admin.php';
-        require_once GOALV_PLUGIN_PATH . 'includes/class-goalv-api.php';
+        // ============================================
+        // PHASE 1: Database Setup
+        // ============================================
+        require_once GOALV_PLUGIN_PATH . 'includes/database/class-goalv-db-setup.php';
+
+        // ============================================
+        // PHASE 2: Data Models (Load Early)
+        // ============================================
+        require_once GOALV_PLUGIN_PATH . 'includes/models/class-goalv-competition.php';
+        require_once GOALV_PLUGIN_PATH . 'includes/models/class-goalv-team.php';
+        require_once GOALV_PLUGIN_PATH . 'includes/models/class-goalv-match.php';
+
+        // ============================================
+        // PHASE 3: Voting System (BEFORE API Layer!)
+        // ============================================
+        require_once GOALV_PLUGIN_PATH . 'includes/voting/class-goalv-vote-options-manager.php';
         require_once GOALV_PLUGIN_PATH . 'includes/class-goalv-voting.php';
-        require_once GOALV_PLUGIN_PATH . 'includes/class-goalv-frontend.php';
+
+        // ============================================
+        // PHASE 4: API Layer (Depends on Vote Options Manager)
+        // ============================================
+        require_once GOALV_PLUGIN_PATH . 'includes/api/class-goalv-api-football-client.php';
+        require_once GOALV_PLUGIN_PATH . 'includes/api/class-goalv-api-competitions.php';
+        require_once GOALV_PLUGIN_PATH . 'includes/api/class-goalv-api-matches.php';
+        require_once GOALV_PLUGIN_PATH . 'includes/api/class-goalv-api-live-scores.php';
+
+        // ============================================
+        // PHASE 5: Autonomous Sync System
+        // ============================================
+        require_once GOALV_PLUGIN_PATH . 'includes/sync/class-goalv-sync-manager.php';
+        require_once GOALV_PLUGIN_PATH . 'includes/sync/class-goalv-sync-scheduler.php';
+        require_once GOALV_PLUGIN_PATH . 'includes/sync/class-goalv-sync-live-scores.php';
+
+        // ============================================
+        // PHASE 6: Admin System (Modular)
+        // ============================================
+        require_once GOALV_PLUGIN_PATH . 'includes/admin/class-goalv-admin-core.php';
+        require_once GOALV_PLUGIN_PATH . 'includes/admin/class-goalv-admin-ajax.php';
+
+        // ============================================
+        // PHASE 7: Modular Frontend System
+        // ============================================
+        require_once GOALV_PLUGIN_PATH . 'includes/frontend/class-goalv-match-query.php';
+        require_once GOALV_PLUGIN_PATH . 'includes/frontend/class-goalv-match-renderer.php';
+        require_once GOALV_PLUGIN_PATH . 'includes/frontend/class-goalv-shortcode-handler.php';
+        require_once GOALV_PLUGIN_PATH . 'includes/frontend/class-goalv-frontend.php';
     }
 
     /**
@@ -72,11 +120,21 @@ class GoalV_Football_Predictions
      */
     private function init_classes()
     {
-        new GoalV_CPT();
-        new GoalV_Admin();
-        new GoalV_API();
+        // Initialize sync scheduler
+        $this->sync_scheduler = new GoalV_Sync_Scheduler();
+
+        // Initialize voting system
         new GoalV_Voting();
+
+        // Initialize modular frontend
         new GoalV_Frontend();
+
+        // Initialize admin system
+        new GoalV_Admin_Core();
+
+        if (is_admin()) {
+            new GoalV_Admin_AJAX();
+        }
     }
 
     /**
@@ -86,292 +144,264 @@ class GoalV_Football_Predictions
     {
         add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_assets'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_assets'));
+        add_filter('template_include', array($this, 'load_single_match_template'));
     }
 
     /**
-     * Enqueue frontend assets - UPDATED for separated JS
+     * Load single match template (custom URL handler)
+     */
+    public function load_single_match_template($template)
+    {
+        $match_id = get_query_var('goalv_match_id');
+
+        if ($match_id) {
+            $single_template = GOALV_PLUGIN_PATH . 'templates/single-goalv_matches.php';
+            if (file_exists($single_template)) {
+                return $single_template;
+            }
+        }
+
+        return $template;
+    }
+
+    /**
+     * Enqueue frontend assets - MODULAR LOADING
      */
     public function enqueue_frontend_assets()
     {
-        // Always enqueue styles
+        // Shared modules
+        wp_enqueue_script(
+            'goalv-ajax-handler',
+            GOALV_PLUGIN_URL . 'assets/js/shared/goalv-ajax-handler.js',
+            array('jquery'),
+            GOALV_VERSION,
+            true
+        );
+
+        wp_enqueue_script(
+            'goalv-toast-system',
+            GOALV_PLUGIN_URL . 'assets/js/shared/goalv-toast-system.js',
+            array('jquery'),
+            GOALV_VERSION,
+            true
+        );
+
+        // Frontend modules
+        wp_enqueue_script(
+            'goalv-frontend-core',
+            GOALV_PLUGIN_URL . 'assets/js/frontend/goalv-frontend-core.js',
+            array('jquery', 'goalv-ajax-handler'),
+            GOALV_VERSION,
+            true
+        );
+
+        wp_enqueue_script(
+            'goalv-frontend-voting',
+            GOALV_PLUGIN_URL . 'assets/js/frontend/goalv-frontend-voting.js',
+            array('goalv-frontend-core'),
+            GOALV_VERSION,
+            true
+        );
+
+        wp_enqueue_script(
+            'goalv-frontend-live',
+            GOALV_PLUGIN_URL . 'assets/js/frontend/goalv-frontend-live.js',
+            array('goalv-frontend-core'),
+            GOALV_VERSION,
+            true
+        );
+
+        // Localization
+        wp_localize_script('goalv-frontend-core', 'goalv_ajax', array(
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('goalv_vote_nonce'),
+            'is_user_logged_in' => is_user_logged_in(),
+            'poll_interval' => 30000
+        ));
+
+        // Frontend CSS
         wp_enqueue_style(
             'goalv-style',
             GOALV_PLUGIN_URL . 'assets/css/goalv-style.css',
             array(),
             GOALV_VERSION
         );
+    }
 
-        // Only enqueue frontend JS on frontend
-        if (!is_admin()) {
-            wp_enqueue_script(
-                'goalv-frontend',
-                GOALV_PLUGIN_URL . 'assets/js/goalv-frontend.js',
-                array('jquery'),
-                GOALV_VERSION,
-                true
-            );
+    public static function check_database_migration()
+    {
+        $current_db_version = get_option('goalv_db_version', '0.0.0');
+        $target_db_version = '9.0.3'; // Your current plugin version
 
-            // Localize script for frontend AJAX
-            wp_localize_script('goalv-frontend', 'goalv_ajax', array(
-                'ajax_url' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('goalv_vote_nonce'),
-                'is_user_logged_in' => is_user_logged_in()
-            ));
+        if (version_compare($current_db_version, $target_db_version, '<')) {
+            require_once GOALV_PLUGIN_PATH . 'includes/database/class-goalv-db-setup.php';
+            GoalV_DB_Setup::migrate_to_9_0_3();
+            update_option('goalv_db_version', $target_db_version);
+            error_log('GoalV: Database migrated to version ' . $target_db_version);
         }
     }
 
     /**
-     * Enqueue admin assets - UPDATED for separated JS
+     * Enqueue admin assets - MODULAR TAB-SPECIFIC LOADING
      */
     public function enqueue_admin_assets($hook_suffix)
     {
-        // Only load on GoalV admin pages
-        if (strpos($hook_suffix, 'goalv') === false && strpos($hook_suffix, 'edit.php?post_type=goalv_matches') === false) {
+        // Only load on GoalV pages
+        if (strpos($hook_suffix, 'goalv') === false) {
             return;
         }
 
-        // Admin styles
+        // ============================================
+        // CORE MODULES (Always Load)
+        // ============================================
+        $core_scripts = array(
+            'goalv-ajax-handler' => 'shared/goalv-ajax-handler.js',
+            'goalv-toast-system' => 'shared/goalv-toast-system.js',
+            'goalv-state-manager' => 'shared/goalv-state-manager.js',
+            'goalv-admin-utils' => 'admin/goalv-admin-utils.js',
+            'goalv-admin-core' => 'admin/goalv-admin-core.js'
+        );
+
+        foreach ($core_scripts as $handle => $path) {
+            wp_enqueue_script(
+                $handle,
+                GOALV_PLUGIN_URL . "assets/js/{$path}",
+                array('jquery'),
+                GOALV_VERSION,
+                true
+            );
+        }
+
+        // ============================================
+        // TAB-SPECIFIC MODULES (Load Based on Tab)
+        // ============================================
+        $current_tab = isset($_GET['tab']) ? sanitize_key($_GET['tab']) : 'dashboard';
+
+        $tab_scripts = array(
+            'dashboard' => 'admin/goalv-admin-dashboard.js',
+            'api-settings' => 'admin/goalv-admin-api.js',
+            'competitions' => 'admin/goalv-admin-competitions.js',
+            'sync' => 'admin/goalv-admin-sync.js',
+            'voting' => 'admin/goalv-admin-voting.js',
+            'system' => 'admin/goalv-admin-system.js'
+        );
+
+        if (isset($tab_scripts[$current_tab])) {
+            $handle = 'goalv-admin-' . str_replace('-', '_', $current_tab);
+
+            wp_enqueue_script(
+                $handle,
+                GOALV_PLUGIN_URL . "assets/js/{$tab_scripts[$current_tab]}",
+                array('goalv-admin-core'),
+                GOALV_VERSION,
+                true
+            );
+
+            // jQuery UI Sortable for voting tab
+            if ($current_tab === 'voting') {
+                wp_enqueue_script('jquery-ui-sortable');
+            }
+        }
+
+        // ============================================
+        // LOCALIZATION
+        // ============================================
+        wp_localize_script('goalv-admin-core', 'goalv_admin', array(
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('goalv_admin_nonce'),
+            'current_tab' => $current_tab,
+            'strings' => array(
+                'confirm_delete' => __('Are you sure?', 'goalv'),
+                'sync_success' => __('Sync completed!', 'goalv'),
+                'sync_error' => __('Sync failed', 'goalv')
+            )
+        ));
+
+        // Admin CSS
         wp_enqueue_style(
             'goalv-admin-style',
-            GOALV_PLUGIN_URL . 'assets/css/goalv-style.css',
+            GOALV_PLUGIN_URL . 'assets/css/goalv-admin.css',
             array(),
             GOALV_VERSION
         );
-
-        // Admin JavaScript
-        wp_enqueue_script(
-            'goalv-admin',
-            GOALV_PLUGIN_URL . 'assets/js/goalv-admin.js',
-            array('jquery'),
-            GOALV_VERSION,
-            true
-        );
-
-        // Localize script for admin AJAX
-        wp_localize_script('goalv-admin', 'goalv_ajax', array(
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('goalv_vote_nonce'),
-            'is_user_logged_in' => is_user_logged_in()
-        ));
     }
 
     /**
      * Plugin activation
      */
-    public function activate()
+    public static function activate()
     {
-        $this->create_tables();
-        $this->create_vote_summary_table();
-        $this->upgrade_database_for_custom_options();
+        // Load required classes in CORRECT ORDER
+        require_once GOALV_PLUGIN_PATH . 'includes/database/class-goalv-db-setup.php';
+
+        // Load models first
+        require_once GOALV_PLUGIN_PATH . 'includes/models/class-goalv-competition.php';
+        require_once GOALV_PLUGIN_PATH . 'includes/models/class-goalv-team.php';
+        require_once GOALV_PLUGIN_PATH . 'includes/models/class-goalv-match.php';
+
+        // Load voting system BEFORE API
+        require_once GOALV_PLUGIN_PATH . 'includes/voting/class-goalv-vote-options-manager.php';
+
+        // Then load API classes
+        require_once GOALV_PLUGIN_PATH . 'includes/api/class-goalv-api-football-client.php';
+        require_once GOALV_PLUGIN_PATH . 'includes/api/class-goalv-api-competitions.php';
+        require_once GOALV_PLUGIN_PATH . 'includes/api/class-goalv-api-matches.php';
+        require_once GOALV_PLUGIN_PATH . 'includes/api/class-goalv-api-live-scores.php';
+
+        // Then sync system
+        require_once GOALV_PLUGIN_PATH . 'includes/sync/class-goalv-sync-manager.php';
+        require_once GOALV_PLUGIN_PATH . 'includes/sync/class-goalv-sync-scheduler.php';
+        require_once GOALV_PLUGIN_PATH . 'includes/sync/class-goalv-sync-live-scores.php';
+
+        // Create database tables
+        GoalV_DB_Setup::create_tables();
+
+        // Run database migration (for updates)
+        self::check_database_migration();
+
+        // Schedule sync jobs
+        $scheduler = new GoalV_Sync_Scheduler();
+        $scheduler->schedule_all_events();
+
+        // Set version and options
+        update_option('goalv_plugin_version', GOALV_VERSION);
+        add_option('goalv_enable_live_sync', true);
+        add_option('goalv_api_football_key', '');
+
+        // Flush rewrite rules for custom URLs
         flush_rewrite_rules();
+
+        error_log('========================================');
+        error_log('GoalV Plugin v' . GOALV_VERSION . ' activated');
+        error_log('- Pure database architecture (NO CPT)');
+        error_log('- Modular frontend system');
+        error_log('- Autonomous sync enabled');
+        error_log('- Vote Options Manager loaded BEFORE API');
+        error_log('- Custom match URLs: /match/{id}/');
+        error_log('========================================');
     }
 
     /**
      * Plugin deactivation
      */
-    public function deactivate()
+    public static function deactivate()
     {
+        // Load scheduler class
+        require_once GOALV_PLUGIN_PATH . 'includes/sync/class-goalv-sync-scheduler.php';
+        require_once GOALV_PLUGIN_PATH . 'includes/sync/class-goalv-sync-manager.php';
+
+        $scheduler = new GoalV_Sync_Scheduler();
+        $scheduler->unschedule_all_events();
+
         flush_rewrite_rules();
+
+        error_log('GoalV Plugin deactivated - Sync jobs stopped');
     }
-
-    /**
-     * Create database tables
-     */
-    private function create_tables()
-    {
-        global $wpdb;
-
-        $charset_collate = $wpdb->get_charset_collate();
-
-        // Create vote_options table - ENHANCED with custom options and category support
-        $table_vote_options = $wpdb->prefix . 'goalv_vote_options';
-        $sql_vote_options = "CREATE TABLE $table_vote_options (
-        id int(11) NOT NULL AUTO_INCREMENT,
-        match_id bigint(20) NOT NULL,
-        option_text varchar(255) NOT NULL,
-        option_type enum('basic','detailed') NOT NULL,
-        category varchar(50) DEFAULT 'other',
-        votes_count int(11) DEFAULT 0,
-        is_custom BOOLEAN DEFAULT FALSE,
-        display_order INT DEFAULT 0,
-        created_by bigint(20) DEFAULT NULL,
-        created_at datetime DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (id),
-        KEY match_id (match_id),
-        KEY idx_match_type_order (match_id, option_type, display_order),
-        KEY idx_category (category)
-    ) $charset_collate;";
-
-        // Create vote_categories table
-        $table_vote_categories = $wpdb->prefix . 'goalv_vote_categories';
-        $sql_vote_categories = "CREATE TABLE $table_vote_categories (
-        id int(11) NOT NULL AUTO_INCREMENT,
-        category_key varchar(50) NOT NULL UNIQUE,
-        category_label varchar(100) NOT NULL,
-        display_order int(11) DEFAULT 0,
-        is_active boolean DEFAULT true,
-        created_at datetime DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (id),
-        KEY idx_display_order (display_order, is_active)
-    ) $charset_collate;";
-
-        // Create votes table (unchanged)
-        $table_votes = $wpdb->prefix . 'goalv_votes';
-        $sql_votes = "CREATE TABLE $table_votes (
-        id int(11) NOT NULL AUTO_INCREMENT,
-        match_id bigint(20) NOT NULL,
-        option_id int(11) NOT NULL,
-        user_id bigint(20) NULL,
-        user_ip varchar(45),
-        browser_id varchar(255),
-        vote_time datetime DEFAULT CURRENT_TIMESTAMP,
-        vote_location enum('homepage','details') NOT NULL,
-        PRIMARY KEY (id),
-        KEY match_id (match_id),
-        KEY user_id (user_id),
-        KEY browser_id (browser_id)
-    ) $charset_collate;";
-
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        dbDelta($sql_vote_options);
-        dbDelta($sql_vote_categories);
-        dbDelta($sql_votes);
-
-        // Insert default categories
-        $this->insert_default_categories();
-
-        // Set default options
-        add_option('goalv_api_key', '');
-        add_option('goalv_competition_id', '2021');
-        add_option('goalv_allow_vote_change', 'yes');
-        add_option('goalv_allow_homepage_vote_change', 'yes');
-        add_option('goalv_allow_details_vote_change', 'yes');
-        add_option('goalv_allow_multiple_votes', 'no');
-    }
-
-    public function create_vote_summary_table()
-    {
-        global $wpdb;
-
-        $table_name = $wpdb->prefix . 'goalv_vote_summary';
-
-        $charset_collate = $wpdb->get_charset_collate();
-
-        $sql = "CREATE TABLE $table_name (
-        id mediumint(9) NOT NULL AUTO_INCREMENT,
-        match_id bigint(20) NOT NULL,
-        option_id mediumint(9) NOT NULL,
-        vote_location varchar(20) NOT NULL,
-        total_votes int DEFAULT 0,
-        last_updated datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        PRIMARY KEY (id),
-        UNIQUE KEY match_option_location (match_id, option_id, vote_location),
-        KEY match_location (match_id, vote_location)
-    ) $charset_collate;";
-
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        dbDelta($sql);
-    }
-
-    public function upgrade_database_for_custom_options()
-    {
-        global $wpdb;
-
-        $table_name = $wpdb->prefix . 'goalv_vote_options';
-
-        // Check if the new columns exist
-        $columns = $wpdb->get_results("DESCRIBE $table_name");
-        $column_names = array_column($columns, 'Field');
-
-        // Add missing columns
-        if (!in_array('is_custom', $column_names)) {
-            $wpdb->query("ALTER TABLE $table_name ADD COLUMN is_custom BOOLEAN DEFAULT FALSE");
-        }
-
-        if (!in_array('display_order', $column_names)) {
-            $wpdb->query("ALTER TABLE $table_name ADD COLUMN display_order INT DEFAULT 0");
-        }
-
-        if (!in_array('created_by', $column_names)) {
-            $wpdb->query("ALTER TABLE $table_name ADD COLUMN created_by bigint(20) DEFAULT NULL");
-        }
-
-        if (!in_array('created_at', $column_names)) {
-            $wpdb->query("ALTER TABLE $table_name ADD COLUMN created_at datetime DEFAULT CURRENT_TIMESTAMP");
-        }
-
-        // Add indexes if they don't exist
-        $indexes = $wpdb->get_results("SHOW INDEX FROM $table_name");
-        $index_names = array_column($indexes, 'Key_name');
-
-        if (!in_array('idx_match_type_order', $index_names)) {
-            $wpdb->query("ALTER TABLE $table_name ADD INDEX idx_match_type_order (match_id, option_type, display_order)");
-        }
-
-        // Update existing records to have proper display_order
-        $wpdb->query("
-        UPDATE $table_name SET display_order = id 
-        WHERE display_order = 0 OR display_order IS NULL
-    ");
-    }
-
-    /**
-     * Insert default vote categories
-     */
-    private function insert_default_categories()
-    {
-        global $wpdb;
-
-        $table_name = $wpdb->prefix . 'goalv_vote_categories';
-
-        // Check if categories already exist
-        $existing_count = $wpdb->get_var("SELECT COUNT(*) FROM $table_name");
-
-        if ($existing_count > 0) {
-            return; // Categories already exist
-        }
-
-        // Default categories for vote grouping
-        $default_categories = array(
-            array(
-                'category_key' => 'match_result',
-                'category_label' => __('Match Result', 'goalv'),
-                'display_order' => 1
-            ),
-            array(
-                'category_key' => 'match_score',
-                'category_label' => __('Exact Score', 'goalv'),
-                'display_order' => 2
-            ),
-            array(
-                'category_key' => 'goals_threshold',
-                'category_label' => __('Total Goals', 'goalv'),
-                'display_order' => 3
-            ),
-            array(
-                'category_key' => 'both_teams_score',
-                'category_label' => __('Both Teams to Score', 'goalv'),
-                'display_order' => 4
-            ),
-            array(
-                'category_key' => 'first_to_score',
-                'category_label' => __('First Team to Score', 'goalv'),
-                'display_order' => 5
-            ),
-            array(
-                'category_key' => 'other',
-                'category_label' => __('Other Predictions', 'goalv'),
-                'display_order' => 6
-            )
-        );
-
-        // Insert categories
-        foreach ($default_categories as $category) {
-            $wpdb->insert($table_name, $category);
-        }
-    }
-
 }
 
 // Initialize the plugin
 new GoalV_Football_Predictions();
+
+// Register activation/deactivation hooks OUTSIDE the class
+register_activation_hook(__FILE__, array('GoalV_Football_Predictions', 'activate'));
+register_deactivation_hook(__FILE__, array('GoalV_Football_Predictions', 'deactivate'));

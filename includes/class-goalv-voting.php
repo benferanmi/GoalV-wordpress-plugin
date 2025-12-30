@@ -1,6 +1,13 @@
 <?php
 /**
- * Voting System Handler - FIXED VERSION
+ * Voting System Handler - UPDATED FOR DATABASE MIGRATION
+ * 
+ * CHANGES:
+ * - Replaced CPT check with database validation using GoalV_Match::exists()
+ * - All other logic remains unchanged (already database-agnostic)
+ * 
+ * @package GoalV
+ * @version 8.1.0
  */
 
 if (!defined('ABSPATH')) {
@@ -19,7 +26,7 @@ class GoalV_Voting
     }
 
     /**
-     * Handle vote submission - UPDATED WITH MULTIPLE VOTES SUPPORT
+     * Handle vote submission - UPDATED WITH DATABASE VALIDATION
      */
     public function handle_vote()
     {
@@ -38,9 +45,8 @@ class GoalV_Voting
             wp_send_json_error(__('Invalid vote data', 'goalv'));
         }
 
-        // Check if match exists
-        $match = get_post($match_id);
-        if (!$match || $match->post_type !== 'goalv_matches') {
+        // UPDATED: Check if match exists in database (not CPT)
+        if (!GoalV_Match::exists($match_id)) {
             wp_send_json_error(__('Match not found', 'goalv'));
         }
 
@@ -55,10 +61,10 @@ class GoalV_Voting
             wp_send_json_error(__('Invalid voting option', 'goalv'));
         }
 
-        // NEW: Get the category of the option being voted on
+        // Get the category of the option being voted on
         $option_category = $option->category;
 
-        // NEW: Check if user already voted in THIS CATEGORY
+        // Check if user already voted in THIS CATEGORY
         $existing_category_vote = $this->get_existing_vote_in_category($match_id, $option_category, $vote_location);
 
         $result = false;
@@ -120,10 +126,6 @@ class GoalV_Voting
 
     /**
      * Get existing vote in a specific category for one-vote-per-category system
-     * @param int $match_id - Match identifier
-     * @param string $category - Vote option category 
-     * @param string $vote_location - Voting context
-     * @return object|null - Existing vote record or null
      */
     private function get_existing_vote_in_category($match_id, $category, $vote_location)
     {
@@ -259,7 +261,6 @@ class GoalV_Voting
         $match_id = intval($_GET['match_id']);
         $vote_location = sanitize_text_field($_GET['vote_location']);
 
-        // FIX 4: Handle 'table' location as 'homepage'
         if ($vote_location === 'table') {
             $vote_location = 'homepage';
         }
@@ -288,7 +289,7 @@ class GoalV_Voting
     }
 
     /**
-     * Get existing vote - MODIFIED for better guest user handling
+     * Get existing vote
      */
     private function get_existing_vote($match_id, $vote_location)
     {
@@ -305,12 +306,9 @@ class GoalV_Voting
                 $vote_location
             ));
         } else {
-            // FIX 5: Better guest user tracking - use unique session per match
             $browser_id = $this->get_browser_id();
             $user_ip = $this->get_user_ip();
 
-            // For guest users, check by browser_id and match_id combination
-            // This allows guests to vote on multiple matches
             return $wpdb->get_row($wpdb->prepare(
                 "SELECT * FROM $table_name WHERE match_id = %d AND browser_id = %s AND user_ip = %s AND vote_location = %s AND user_id IS NULL",
                 $match_id,
@@ -356,7 +354,7 @@ class GoalV_Voting
         if (is_user_logged_in()) {
             $vote_data['user_id'] = get_current_user_id();
         } else {
-            $vote_data['user_id'] = null; // Explicitly set null for guest users
+            $vote_data['user_id'] = null;
         }
 
         $votes_table = $wpdb->prefix . 'goalv_votes';
@@ -413,8 +411,6 @@ class GoalV_Voting
     /**
      * Calculate vote percentages
      */
-
-
     private function calculate_vote_percentages($match_id, $vote_location)
     {
         global $wpdb;
@@ -422,7 +418,6 @@ class GoalV_Voting
         $table_name = $wpdb->prefix . 'goalv_vote_options';
         $option_type = ($vote_location === 'homepage') ? 'basic' : 'detailed';
 
-        // Get all options for this match and type (including custom options)
         $options = $wpdb->get_results($wpdb->prepare(
             "SELECT id, option_text, votes_count, is_custom, display_order 
          FROM $table_name 
@@ -451,7 +446,7 @@ class GoalV_Voting
     }
 
     /**
-     * Get vote option details - NEW METHOD
+     * Get vote option details
      */
     public function get_vote_option_details($option_id)
     {
@@ -465,11 +460,10 @@ class GoalV_Voting
     }
 
     /**
-     * Get user's current vote for a match - MODIFIED
+     * Get user's current vote for a match
      */
     public function get_user_vote($match_id, $vote_location)
     {
-        // Handle table location as homepage
         if ($vote_location === 'table') {
             $vote_location = 'homepage';
         }
@@ -479,10 +473,7 @@ class GoalV_Voting
     }
 
     /**
-     * Get user's votes organized by category for one-vote-per-category system
-     * @param int $match_id - Match identifier  
-     * @param string $vote_location - Voting location (homepage/details)
-     * @return array - Array with category as key, option_id as value
+     * Get user's votes organized by category
      */
     public function get_user_votes_by_category($match_id, $vote_location)
     {
@@ -531,7 +522,7 @@ class GoalV_Voting
     }
 
     /**
-     * Get custom options count for a match - NEW METHOD
+     * Get custom options count for a match
      */
     public function get_custom_options_count($match_id, $option_type = null)
     {
@@ -556,7 +547,7 @@ class GoalV_Voting
     }
 
     /**
-     * Get voting statistics for admin - NEW METHOD
+     * Get voting statistics for admin
      */
     public function get_voting_statistics($match_id)
     {
@@ -565,7 +556,6 @@ class GoalV_Voting
         $options_table = $wpdb->prefix . 'goalv_vote_options';
         $votes_table = $wpdb->prefix . 'goalv_votes';
 
-        // Get option counts
         $total_options = $wpdb->get_var($wpdb->prepare(
             "SELECT COUNT(*) FROM $options_table WHERE match_id = %d",
             $match_id
@@ -586,7 +576,6 @@ class GoalV_Voting
             $match_id
         ));
 
-        // Get vote counts
         $total_votes = $wpdb->get_var($wpdb->prepare(
             "SELECT COUNT(*) FROM $votes_table WHERE match_id = %d",
             $match_id
@@ -620,13 +609,12 @@ class GoalV_Voting
     }
 
     /**
-     * Validate custom option - NEW METHOD
+     * Validate custom option
      */
     public function validate_custom_option($option_text, $option_type, $match_id)
     {
         $errors = array();
 
-        // Validate option text
         if (empty(trim($option_text))) {
             $errors[] = __('Option text cannot be empty', 'goalv');
         }
@@ -635,12 +623,10 @@ class GoalV_Voting
             $errors[] = __('Option text is too long (maximum 255 characters)', 'goalv');
         }
 
-        // Validate option type
         if (!in_array($option_type, array('basic', 'detailed'))) {
             $errors[] = __('Invalid option type', 'goalv');
         }
 
-        // Check for duplicate options
         global $wpdb;
         $table_name = $wpdb->prefix . 'goalv_vote_options';
 
@@ -660,7 +646,7 @@ class GoalV_Voting
     }
 
     /**
-     * Delete custom option and its votes - NEW METHOD
+     * Delete custom option and its votes
      */
     public function delete_custom_option($option_id)
     {
@@ -669,7 +655,6 @@ class GoalV_Voting
         $options_table = $wpdb->prefix . 'goalv_vote_options';
         $votes_table = $wpdb->prefix . 'goalv_votes';
 
-        // Verify it's a custom option
         $option = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM $options_table WHERE id = %d AND is_custom = 1",
             $option_id
@@ -679,28 +664,20 @@ class GoalV_Voting
             return false;
         }
 
-        // Delete all votes for this option first
         $votes_deleted = $wpdb->delete($votes_table, array('option_id' => $option_id));
-
-        // Delete the option
         $option_deleted = $wpdb->delete($options_table, array('id' => $option_id));
 
-        // Clear cache if successful
         if ($option_deleted) {
             $this->clear_vote_cache($option->match_id);
-
-            // Log the deletion
             error_log("GoalV: Deleted custom option {$option_id} with {$votes_deleted} votes");
-
             return true;
         }
 
         return false;
     }
 
-
     /**
-     * Get browser ID - ENHANCED
+     * Get browser ID
      */
     private function get_browser_id()
     {
@@ -708,7 +685,6 @@ class GoalV_Voting
             return sanitize_text_field($_POST['browser_id']);
         }
 
-        // Fallback: generate based on user agent and IP with session
         $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
         $ip = $this->get_user_ip();
         $session_id = session_id() ? session_id() : 'no_session';
@@ -731,7 +707,7 @@ class GoalV_Voting
     }
 
     /**
-     * Get vote options grouped by category - NEW METHOD
+     * Get vote options grouped by category
      */
     public function get_vote_options_grouped($match_id, $option_type = 'detailed')
     {
@@ -761,11 +737,10 @@ class GoalV_Voting
     }
 
     /**
-     * UPDATED: Group options by category with database labels
+     * Group options by category
      */
     private function group_options_by_category($options)
     {
-        // Get categories from database
         $categories = $this->get_available_categories();
         $category_labels = array();
         $category_orders = array();
@@ -795,7 +770,6 @@ class GoalV_Voting
             $grouped[$category]['options'][] = $option;
         }
 
-        // Sort by category order
         uasort($grouped, function ($a, $b) {
             return $a['order'] - $b['order'];
         });
@@ -803,9 +777,8 @@ class GoalV_Voting
         return $grouped;
     }
 
-
     /**
-     * UPDATED: Get category order from database
+     * Get category order from database
      */
     private function get_category_order($category)
     {
@@ -813,10 +786,8 @@ class GoalV_Voting
         return $cat_obj ? $cat_obj->display_order : 999;
     }
 
-
-
     /**
-     * Get vote options for a match - UPDATED to include custom options with proper ordering
+     * Get vote options for a match
      */
     public function get_vote_options($match_id, $option_type = 'basic')
     {
@@ -844,13 +815,12 @@ class GoalV_Voting
     }
 
     /**
-     * UPDATED: Get default category for option text with database fallback
+     * Get default category for option text
      */
     public function get_default_category($option_text)
     {
         $option_text = strtolower($option_text);
 
-        // Pattern matching logic (same as before)
         if (
             preg_match('/\b(win|wins|victory)\b/', $option_text) ||
             in_array($option_text, ['draw', 'tie'])
@@ -878,7 +848,7 @@ class GoalV_Voting
     }
 
     /**
-     * Get all vote options for a match (both basic and detailed) - NEW METHOD
+     * Get all vote options for a match
      */
     public function get_all_vote_options($match_id)
     {
@@ -897,6 +867,9 @@ class GoalV_Voting
         ));
     }
 
+    /**
+     * Get cached vote results
+     */
     public function get_vote_results_cached($match_id, $vote_location)
     {
         $cache_key = "goalv_vote_results_{$match_id}_{$vote_location}";
@@ -907,15 +880,13 @@ class GoalV_Voting
         }
 
         $results = $this->calculate_vote_percentages($match_id, $vote_location);
-        set_transient($cache_key, $results, 300); // Cache for 5 minutes
+        set_transient($cache_key, $results, 300);
 
         return $results;
     }
 
-
     /**
      * Get all active categories from database
-     * @return array Array of category objects
      */
     public function get_available_categories()
     {
@@ -934,8 +905,6 @@ class GoalV_Voting
 
     /**
      * Get category details by key
-     * @param string $category_key Category identifier
-     * @return object|null Category object or null
      */
     public function get_category_by_key($category_key)
     {
@@ -951,10 +920,6 @@ class GoalV_Voting
 
     /**
      * Create new category
-     * @param string $category_key Unique key for category
-     * @param string $category_label Display label
-     * @param int $display_order Display order
-     * @return int|false Category ID on success, false on failure
      */
     public function create_category($category_key, $category_label, $display_order = null)
     {
@@ -962,7 +927,6 @@ class GoalV_Voting
 
         $table_name = $wpdb->prefix . 'goalv_vote_categories';
 
-        // Check if key already exists
         $existing = $wpdb->get_var($wpdb->prepare(
             "SELECT COUNT(*) FROM $table_name WHERE category_key = %s",
             $category_key
@@ -972,7 +936,6 @@ class GoalV_Voting
             return false;
         }
 
-        // Get next display order if not provided
         if ($display_order === null) {
             $max_order = $wpdb->get_var("SELECT MAX(display_order) FROM $table_name");
             $display_order = $max_order ? ($max_order + 1) : 1;
@@ -994,10 +957,6 @@ class GoalV_Voting
 
     /**
      * Update existing category
-     * @param int $category_id Category ID to update
-     * @param string $category_label New label
-     * @param int $display_order New display order
-     * @return bool Success status
      */
     public function update_category($category_id, $category_label, $display_order)
     {
@@ -1019,8 +978,6 @@ class GoalV_Voting
 
     /**
      * Delete category (mark as inactive)
-     * @param int $category_id Category ID to delete
-     * @return bool Success status
      */
     public function delete_category($category_id)
     {
@@ -1028,7 +985,6 @@ class GoalV_Voting
 
         $table_name = $wpdb->prefix . 'goalv_vote_categories';
 
-        // Don't allow deletion of 'other' category
         $category = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM $table_name WHERE id = %d",
             $category_id
@@ -1038,7 +994,6 @@ class GoalV_Voting
             return false;
         }
 
-        // Move options in this category to 'other'
         $options_table = $wpdb->prefix . 'goalv_vote_options';
         $wpdb->update(
             $options_table,
@@ -1048,7 +1003,6 @@ class GoalV_Voting
             array('%s')
         );
 
-        // Mark category as inactive
         return $wpdb->update(
             $table_name,
             array('is_active' => 0),
@@ -1058,8 +1012,9 @@ class GoalV_Voting
         );
     }
 
-
-    // Clear cache when votes are cast:
+    /**
+     * Clear vote cache
+     */
     public function clear_vote_cache($match_id)
     {
         delete_transient("goalv_vote_results_{$match_id}_homepage");
